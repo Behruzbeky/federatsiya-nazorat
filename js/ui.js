@@ -1,5 +1,5 @@
 // Small rendering toolkit: string templates + hand-drawn SVG charts (no libraries, instant load).
-import { t, mon, getLang } from './i18n.js';
+import { t, getLang } from './i18n.js';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const num = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -69,39 +69,27 @@ export function sparkline(vals, w = 120, h = 34) {
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 }
 
-/** Two-series area chart: plan (dashed) vs actual (filled). */
-export function areaChart(plan, fact, { h = 220 } = {}) {
-  const w = 640, padL = 46, padB = 26, padT = 12, n = plan.length;
-  const max = Math.max(...plan, ...fact) * 1.12;
-  const x = (i) => padL + (i / (n - 1)) * (w - padL - 10);
-  const y = (v) => padT + (1 - v / max) * (h - padT - padB);
-  const line = (a) => a.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
-  let grid = '';
-  for (let g = 0; g <= 4; g++) { const v = (max / 4) * g; grid += `<line x1="${padL}" x2="${w - 10}" y1="${y(v)}" y2="${y(v)}"/><text x="${padL - 8}" y="${y(v) + 4}" text-anchor="end">${short(v)}</text>`; }
-  const labels = plan.map((_, i) => `<text x="${x(i)}" y="${h - 6}" text-anchor="middle">${mon(i)}</text>`).join('');
-  const dots = fact.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="3.2" data-tip="${mon(i)}: ${short(v)} / ${short(plan[i])}"/>`).join('');
-  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-    <defs><linearGradient id="gFact" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--blue)" stop-opacity=".45"/><stop offset="1" stop-color="var(--blue)" stop-opacity="0"/></linearGradient></defs>
-    <g class="grid">${grid}</g><g class="axis">${labels}</g>
-    <path d="${line(fact)}L${x(n - 1)},${y(0)}L${x(0)},${y(0)}Z" fill="url(#gFact)"/>
-    <path d="${line(plan)}" class="plan"/><path d="${line(fact)}" class="fact"/><g class="dots">${dots}</g></svg>`;
-}
-
+/** Animated donut; segments sweep in and swell on hover (title = native tooltip). */
 export function donut(parts, { size = 168, label = '', value = '' } = {}) {
   const r = 62, c = 2 * Math.PI * r, total = parts.reduce((s, p) => s + p.v, 0) || 1;
   let off = 0;
-  const arcs = parts.map((p) => { const len = (p.v / total) * c; const s = `<circle r="${r}" cx="80" cy="80" fill="none" stroke="${p.color}" stroke-width="16" stroke-dasharray="${Math.max(0, len - 3)} ${c}" stroke-dashoffset="${-off}" stroke-linecap="round"/>`; off += len; return s; }).join('');
+  const arcs = parts.map((p, i) => { const len = (p.v / total) * c; const s = `<circle class="seg" style="animation-delay:${i * 0.12}s" r="${r}" cx="80" cy="80" fill="none" stroke="${p.color}" stroke-width="16" stroke-dasharray="${Math.max(0, len - 3)} ${c}" stroke-dashoffset="${-off}" stroke-linecap="round" data-tip="${esc(p.tip || '')}"/>`; off += len; return s; }).join('');
   return `<svg class="donut" width="${size}" height="${size}" viewBox="0 0 160 160"><g transform="rotate(-90 80 80)"><circle r="${r}" cx="80" cy="80" fill="none" stroke="var(--line)" stroke-width="16"/>${arcs}</g>
     <text x="80" y="76" text-anchor="middle" class="d-val">${value}</text><text x="80" y="96" text-anchor="middle" class="d-lbl">${esc(label)}</text></svg>`;
 }
 
-export function gauge(v, label) {
-  const a = Math.PI * Math.min(1, Math.max(0, v));
-  const x = 100 - 80 * Math.cos(a), y = 100 - 80 * Math.sin(a);
+/** Half-circle gauge whose arc sweeps to the value (arc length of r=80 half circle ≈ 251.3). */
+export function gauge(v, label, id = '') {
+  const k = Math.min(1, Math.max(0, v));
   const tone = v >= 0.9 ? 'var(--ok)' : v >= 0.75 ? 'var(--warn)' : 'var(--red)';
-  return `<svg class="gauge" viewBox="0 0 200 116"><path d="M20 100A80 80 0 0 1 180 100" stroke="var(--line)" stroke-width="14" fill="none" stroke-linecap="round"/>
-    <path d="M20 100A80 80 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)}" stroke="${tone}" stroke-width="14" fill="none" stroke-linecap="round"/>
+  return `<svg class="gauge" viewBox="0 0 200 116" ${id ? `id="${id}"` : ''}><path d="M20 100A80 80 0 0 1 180 100" stroke="var(--line)" stroke-width="14" fill="none" stroke-linecap="round"/>
+    <path class="arc" d="M20 100A80 80 0 0 1 180 100" style="--off:${(251.3 * (1 - k)).toFixed(1)};color:${tone}" stroke="${tone}" stroke-width="14" fill="none" stroke-linecap="round"/>
     <text x="100" y="92" text-anchor="middle" class="g-val">${pct(v)}</text><text x="100" y="112" text-anchor="middle" class="g-lbl">${esc(label)}</text></svg>`;
+}
+export function setGauge(svg, v) {
+  if (!svg) return; const k = Math.min(1, Math.max(0, v));
+  const arc = svg.querySelector('.arc'); arc.style.animation = 'none'; arc.style.strokeDashoffset = (251.3 * (1 - k)).toFixed(1);
+  svg.querySelector('.g-val').textContent = pct(v);
 }
 
 export const bar = (v, tone = '') => `<span class="bar ${tone}"><i style="width:${Math.min(100, Math.max(0, v * 100)).toFixed(1)}%"></i></span>`;

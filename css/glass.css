@@ -1,0 +1,119 @@
+/* =====================================================================
+   Glass v2 — transparent frosted cards over living colour, liquid-drop
+   refraction on chrome, cursor glare, blur-in entrance (reference look).
+   Loaded after app.css and overrides it.
+   ===================================================================== */
+:root {
+  --font: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  --glass-card: linear-gradient(140deg, rgba(255,255,255,.6), rgba(255,255,255,.24)); --glass-edge: rgba(255,255,255,.8); --glass-edge2: rgba(255,255,255,.14);
+  --orb-a: #3b82f6; --orb-b: #ef4444; --orb-c: #06b6d4; --orb-d: #8b5cf6; --orb-e: #f59e0b; --orb-op: .5; --glare: rgba(255,255,255,.6);
+  --chrome: rgba(255,255,255,.4); --thead: rgba(255,255,255,.6); --surface: rgba(255,255,255,.4);
+}
+:root[data-theme="dark"] {
+  --glass-card: linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.035)); --glass-edge: rgba(255,255,255,.3); --glass-edge2: rgba(255,255,255,.05);
+  --orb-a: #1d5fe0; --orb-b: #c81e2b; --orb-c: #0e7490; --orb-d: #5b21b6; --orb-e: #b45309; --orb-op: .6; --glare: rgba(255,255,255,.14);
+  --chrome: rgba(14,24,54,.42); --thead: rgba(14,24,54,.72); --surface: rgba(255,255,255,.05);
+}
+body { font-family: var(--font); letter-spacing: -.005em; }
+button, input, select { font-family: var(--font); }
+
+/* living colour under the glass: transform-only animation, composited on the GPU */
+.orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: var(--orb-op); will-change: transform; animation: drift 38s ease-in-out infinite alternate; }
+.o1 { width: 46vw; height: 46vw; left: 48%; top: -12%; background: var(--orb-a); }
+.o2 { width: 30vw; height: 30vw; left: 74%; top: 46%; background: var(--orb-b); animation-duration: 44s; animation-delay: -12s; opacity: calc(var(--orb-op) * .7); }
+.o3 { width: 36vw; height: 36vw; left: -8%; top: 50%; background: var(--orb-c); animation-duration: 52s; animation-delay: -20s; }
+.o4 { width: 28vw; height: 28vw; left: 22%; top: -10%; background: var(--orb-d); animation-duration: 47s; animation-delay: -6s; opacity: calc(var(--orb-op) * .6); }
+.o5 { width: 22vw; height: 22vw; left: 40%; top: 70%; background: var(--orb-e); animation-duration: 41s; animation-delay: -30s; opacity: calc(var(--orb-op) * .45); }
+@keyframes drift { 0% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(-6vw, 5vh, 0) scale(1.12); } 100% { transform: translate3d(4vw, -4vh, 0) scale(.92); } }
+.glow { display: none; }
+body.in-app .emblem { opacity: calc(var(--emblem-app) * 2.2); }
+
+/* frosted card */
+.card { background: var(--glass-card); border: 1px solid var(--glass-edge2);
+  backdrop-filter: blur(24px) saturate(175%); -webkit-backdrop-filter: blur(24px) saturate(175%);
+  box-shadow: inset 0 1px 0 var(--glass-edge), inset 0 -10px 30px -18px rgba(255,255,255,.25), 0 18px 40px -22px rgba(15,35,90,.45);
+  contain: layout; isolation: isolate; overflow: hidden; }
+/* specular rim: bright top-left edge fading out, like thick glass */
+.card::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 0;
+  background: linear-gradient(135deg, var(--glass-edge) 0%, transparent 38%, transparent 62%, var(--glass-edge2) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+/* cursor glare — soft light that follows the pointer (JS sets --mx/--my) */
+.card::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0; opacity: 0; transition: opacity .35s;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), var(--glare), transparent 45%); }
+.card:hover::after { opacity: 1; }
+.card > * { position: relative; z-index: 1; }
+.card .spark { position: absolute; }
+.kpi.hl { background: linear-gradient(140deg, rgba(47,140,255,.62), rgba(31,111,224,.22)); color: #fff; }
+.kpi.hl .kpi-top, .kpi.hl .kpi-sub, .kpi.hl .kpi-sub span, .kpi.hl small { color: rgba(255,255,255,.88); }
+.kpi.hl .kpi-ic { background: rgba(255,255,255,.25); color: #fff; } .kpi.hl .spark { color: #fff; }
+
+/* liquid drop: refraction through an SVG displacement map (Chromium); other browsers keep plain blur */
+.rail, .top, .drawer, .login-card { background: var(--chrome); backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%); }
+@supports (backdrop-filter: url(#liquid)) { .rail, .top, .login-card { backdrop-filter: url(#liquid) blur(10px) saturate(185%); } }
+.rail, .top, .login-card { border: 1px solid var(--glass-edge2); box-shadow: inset 0 1px 0 var(--glass-edge), inset 0 -12px 24px -16px rgba(255,255,255,.35), 0 20px 50px -24px rgba(15,35,90,.5); }
+.btn.primary, .rail a.on { box-shadow: inset 0 1px 1px rgba(255,255,255,.6), inset 0 -2px 6px rgba(0,0,0,.12), 0 8px 22px -10px rgba(47,140,255,.8); }
+.seg-ind { box-shadow: inset 0 1px 1px rgba(255,255,255,.7), 0 3px 10px rgba(15,35,90,.18); }
+
+/* entrance: cards rise out of blur, staggered (--i set in JS) */
+@keyframes glassIn { from { opacity: 0; transform: translateY(14px) scale(.985); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
+.page .card { animation: glassIn .6s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 45ms); }
+.page.settled .card, .page.settled .cap i, .page.settled .donut .seg, .page.settled .gauge .arc { animation: none; }
+.page.settled .gauge .arc { stroke-dashoffset: var(--off); }
+.tbl-wrap { background: transparent; }
+.tbl th { background: var(--thead); }
+
+/* ---------- charts v2 ---------- */
+.chart-wrap { position: relative; }
+.chart .fact { stroke-width: 2.6; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.4s .15s cubic-bezier(.6,0,.2,1) forwards; }
+.chart .plan { stroke-dasharray: 4 6; opacity: 0; animation: fadeIn .6s .9s forwards; }
+.chart .area { opacity: 0; animation: fadeIn .9s .6s forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } } @keyframes fadeIn { to { opacity: 1; } }
+.chart-wrap .chart { width: auto; height: auto; overflow: visible; }
+.chart.static .fact { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
+.chart.static .plan, .chart.static .area { animation: none; opacity: 1; }
+.chart .hit { cursor: crosshair; }
+.chart .xhair { stroke: var(--line2); stroke-width: 1; stroke-dasharray: 3 4; }
+.chart .hot { fill: #fff; stroke: var(--cyan); stroke-width: 3; filter: drop-shadow(0 0 8px var(--cyan)); }
+.chart .live-dot { fill: var(--cyan); }
+.chart .live-ring { fill: none; stroke: var(--cyan); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: ping 1.8s ease-out infinite; }
+@keyframes ping { from { transform: scale(.6); opacity: .9; } to { transform: scale(2.6); opacity: 0; } }
+.ctip { position: absolute; pointer-events: none; padding: 8px 12px; border-radius: 12px; font-size: 12px; white-space: nowrap; transform: translate(-50%, -120%);
+  background: var(--pop); border: 1px solid var(--line2); box-shadow: 0 10px 30px -10px rgba(0,0,0,.35); z-index: 5; }
+.ctip b { display: block; font-size: 13.5px; } .ctip span { color: var(--mute); }
+
+.caps { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; align-items: end; gap: 8px; height: 220px; padding-top: 26px; }
+.cap { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; cursor: pointer; }
+.cap i { width: min(30px, 72%); border-radius: 999px; height: var(--h); transform-origin: bottom; animation: grow .9s cubic-bezier(.2,.9,.25,1.15) both; animation-delay: calc(var(--k) * 55ms + .2s);
+  background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.18)); border: 1px solid var(--glass-edge);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 6px 18px -8px rgba(15,35,90,.35); transition: height .6s cubic-bezier(.2,.9,.25,1), background .25s; }
+:root[data-theme="dark"] .cap i { background: linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.05)); }
+.cap.on i, .cap:hover i { background: linear-gradient(180deg, #5aa9ff, #1f6fe0); border-color: rgba(160,205,255,.8); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 10px 26px -6px rgba(47,140,255,.75); }
+.cap.bad i { background: linear-gradient(180deg, #ff8a92, #d4202c); border-color: rgba(255,160,166,.8); }
+.cap em { font-style: normal; font-size: 10.5px; color: var(--mute); margin-top: 8px; white-space: nowrap; }
+.cap b { position: absolute; bottom: calc(var(--h) + 30px); font-size: 11px; font-weight: 600; opacity: 0; transform: translateY(4px); transition: .2s; white-space: nowrap;
+  padding: 3px 8px; border-radius: 8px; background: var(--pop); border: 1px solid var(--line2); }
+.cap:hover b, .cap.on b { opacity: 1; transform: none; }
+@keyframes grow { from { transform: scaleY(0); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+
+.donut .seg { transition: stroke-width .2s; cursor: pointer; animation: sweep 1.3s cubic-bezier(.6,0,.2,1) both; }
+.donut .seg:hover { stroke-width: 22; }
+@keyframes sweep { from { stroke-dasharray: 0 999; } }
+.gauge .arc { stroke-dasharray: 252; stroke-dashoffset: 252; animation: gauge 1.4s .2s cubic-bezier(.6,0,.2,1) forwards; transition: stroke-dashoffset .8s; }
+@keyframes gauge { to { stroke-dashoffset: var(--off); } }
+
+.live { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--ok); }
+.live i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: pulse 1.6s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52,211,153,.6); } 100% { box-shadow: 0 0 0 9px rgba(52,211,153,0); } }
+.feed { display: grid; gap: 8px; }
+.feed > div { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; padding: 9px 10px; border-radius: 14px; background: var(--glass); border: 1px solid var(--line); font-size: 12.5px; animation: feedIn .5s cubic-bezier(.2,.9,.3,1.2) both; }
+.feed .fi { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; background: rgba(52,211,153,.14); color: var(--ok); }
+.feed b { font-variant-numeric: tabular-nums; white-space: nowrap; } .feed small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.feed > div > div { min-width: 0; }
+@keyframes feedIn { from { opacity: 0; transform: translateY(-10px) scale(.97); } }
+.flash { animation: flash .9s; } @keyframes flash { 30% { color: var(--ok); text-shadow: 0 0 18px rgba(52,211,153,.6); } }
+
+@media (max-width: 900px) { .orb { filter: blur(50px); } .card { backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%); } }
+@media (prefers-reduced-motion: reduce) {
+  .orb, .page .card, .chart .fact, .cap i, .gauge .arc, .donut .seg, .chart .live-ring { animation: none !important; }
+  .chart .fact { stroke-dashoffset: 0; } .chart .plan, .chart .area { opacity: 1; } .gauge .arc { stroke-dashoffset: var(--off); }
+}

@@ -111,6 +111,7 @@ async function route() {
   if (seq !== routeSeq) return; // a newer navigation already won
   view.innerHTML = `<div class="page">${mod.render()}</div>`;
   view.style.animation = 'none'; void view.offsetWidth; view.style.animation = '';
+  view.querySelectorAll('.card').forEach((c, i) => c.style.setProperty('--i', Math.min(i, 14)));
   if (mod.mount) mod.mount(view.firstElementChild, rerender);
   requestAnimationFrame(() => syncSegments());
   window.scrollTo({ top: 0 });
@@ -118,7 +119,7 @@ async function route() {
 async function rerender() {
   const mod = await load(S.page);
   const view = $('#view');
-  view.innerHTML = `<div class="page">${mod.render()}</div>`;
+  view.innerHTML = `<div class="page settled">${mod.render()}</div>`; // no entrance replay on filter/page changes
   if (mod.mount) mod.mount(view.firstElementChild, rerender);
   syncSegments();
 }
@@ -174,12 +175,20 @@ function wire() {
   // chart tooltips
   const tip = $('#tip');
   document.addEventListener('mouseover', (e) => { const el = e.target.closest('[data-tip]'); if (!el) { tip.hidden = true; return; } tip.textContent = el.dataset.tip; tip.hidden = false; });
+  // glass glare follows the pointer over the hovered card (one rect read per frame)
+  let glareCard = null, glareRaf = 0, gx = 0, gy = 0;
+  document.addEventListener('pointermove', (e) => {
+    glareCard = e.target.closest && e.target.closest('.card'); gx = e.clientX; gy = e.clientY;
+    if (glareCard && !glareRaf) glareRaf = requestAnimationFrame(() => { glareRaf = 0; if (!glareCard) return; const r = glareCard.getBoundingClientRect(); glareCard.style.setProperty('--mx', `${gx - r.left}px`); glareCard.style.setProperty('--my', `${gy - r.top}px`); });
+  }, { passive: true });
   document.addEventListener('mousemove', (e) => { if (!tip.hidden) { tip.style.left = `${e.clientX + 12}px`; tip.style.top = `${e.clientY - 34}px`; } }, { passive: true });
   window.addEventListener('hashchange', route);
   let rz; window.addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => syncSegments()); });
 }
 
 applyStatic(); wireLogin(); wire();
+// segment indicators are measured in px — re-measure once Poppins has loaded
+if (document.fonts) document.fonts.ready.then(() => syncSegments());
 let saved = null;
 try { saved = sessionStorage.getItem('fn.role'); } catch (e) { /* ignore */ }
 if (saved && ROLES.find((r) => r.id === saved)) enter(ROLES.find((r) => r.id === saved));

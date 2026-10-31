@@ -148,13 +148,18 @@ export const memberDebt = (m) => (m.due - m.paid) * memberRate(m);
 
 /* ---------- Monthly aggregates per society ---------- */
 // agg[societyId] = { charged:[10], received:[10], entry:[10] }
+const LATE = [0.18, 0.04, 0.22, 0.06, 0.1, 0.16, 0.34, 0.3, 0.05, 0];
 export const AGG = {};
 for (const s of SOCIETIES) AGG[s.id] = { charged: Array(MONTHS).fill(0), received: Array(MONTHS).fill(0) };
 for (const m of MEMBERS) {
   const a = AGG[m.society]; const rate = memberRate(m);
   for (let k = 0; k < m.due; k++) a.charged[m.startM + k] += rate;
   // paid months are spread across the member's due range (partial payers skip some months)
-  for (let k = 0; k < m.paid; k++) a.received[m.startM + Math.floor(((k + m.ph) * m.due) / m.paid)] += rate;
+  for (let k = 0; k < m.paid; k++) {
+    let mm = m.startM + Math.floor(((k + m.ph) * m.due) / m.paid);
+    if (mm < MONTHS - 1 && R() < LATE[mm]) mm++; // seasonal lateness: holidays and summer push payments into the next month
+    a.received[mm] += rate;
+  }
   if (m.joined.getFullYear() === YEAR) { a.charged[m.startM] += TARIFF.entry; a.received[m.startM] += TARIFF.entry; }
 }
 
