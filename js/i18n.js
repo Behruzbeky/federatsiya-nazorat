@@ -1,0 +1,166 @@
+// UI strings. Uzbek (Latin) is primary; ru/en follow. Missing keys fall back to uz.
+const D = {
+  uz: {
+    app: 'Federatsiya Nazorat', org: 'Oʻzbekiston isteʼmolchilar huquqlarini himoya qilish jamiyatlari federatsiyasi',
+    tagline: 'Aʼzolar, badallar va ajratmalarning yagona elektron nazorati',
+    login: 'Tizimga kirish', loginHint: 'Demo rejim: rolni tanlang — maʼlumotlar sinov uchun yaratilgan',
+    username: 'Login', password: 'Parol', role: 'Rol', next: 'Davom etish', signIn: 'Kirish', back: 'Orqaga',
+    otpTitle: 'Ikki bosqichli tasdiqlash', otpHint: 'Telefoningizga yuborilgan 6 xonali kod (demo: 246810)', otpBad: 'Kod notoʻgʻri',
+    secure: 'Demo: 2FA va audit jurnali namunasi',
+    demoBanner: 'haqiqiy autentifikatsiya yoʻq, sintetik maʼlumotlar',
+    disclaimer: 'Norasmiy konsepsiya-demo. Bu haqiqiy kirish sahifasi emas — hech qanday maʼlumot yuborilmaydi va saqlanmaydi.', concept: 'Konsepsiya · MVP demo', logout: 'Chiqish',
+    search: 'Qidirish: aʼzo, jamiyat, tranzaksiya…',
+    // nav
+    dashboard: 'Boshqaruv paneli', members: 'Aʼzolar reyestri', fees: 'Aʼzolik badallari', bank: 'Bank tushumlari',
+    distribution: 'Ajratmalar hisobi', transfers: 'Oʻtkazmalar nazorati', groups: 'Tayanch guruhlar', reports: 'Hisobotlar',
+    alerts: 'Bildirishnomalar', audit: 'Audit jurnali', settings: 'Qoidalar va rollar',
+    // roles
+    r_head: 'Markaziy apparat rahbariyati', r_fin: 'Markaziy moliya-nazorat xizmati', r_region: 'Hududiy birlashma rahbari',
+    r_chair: 'Tuman (shahar) jamiyati raisi', r_acc: 'Buxgalter', r_group: 'Tayanch guruh rahbari', r_auditor: 'Ichki auditor', r_admin: 'Tizim administratori',
+    // scope
+    republic: 'Respublika', region: 'Hudud', society: 'Jamiyat', group: 'Tayanch guruh', center: 'Markaziy apparat', all: 'Barchasi',
+    // kpi
+    k_members: 'Aʼzolar soni', k_collect: 'Badallar yigʻiluvchanligi', k_debt: 'Qarzdorlik', k_timely: 'Oʻtkazmalar oʻz vaqtida',
+    k_overdue: 'Muddati oʻtgan', k_registers: 'Reyestrlar oʻz vaqtida', k_discrep: 'Taqsimot tafovuti', k_docs: 'Xarajatlar hujjat bilan',
+    received: 'Tushum', charged: 'Hisoblangan', plan: 'Reja', fact: 'Fakt', ytd: 'yil boshidan', thisMonth: 'shu oy',
+    receiptsByMonth: 'Tushumlar dinamikasi', regionsRank: 'Hududlar toʻlov intizomi', overdueList: 'Muddati oʻtgan majburiyatlar',
+    distShare: 'Oktyabr taqsimoti', deadlines: 'Yaqin muddatlar', pipeline: 'Pul oqimi zanjiri',
+    p1: 'Aʼzo', p2: 'Badal hisoblandi', p3: 'Bankka tushdi', p4: 'Ajratma hisoblandi', p5: 'Toʻlov topshiriqnomasi', p6: 'Bank tasdigʻi', p7: 'Hisobot', p8: 'Audit',
+    // table/common
+    name: 'F.I.Sh.', id: 'ID', status: 'Holat', date: 'Sana', amount: 'Summa', sum: 'soʻm', actions: 'Amallar', details: 'Batafsil',
+    filter: 'Filtr', export: 'Eksport', import: 'Import', add: 'Qoʻshish', save: 'Saqlash', cancel: 'Bekor qilish', close: 'Yopish',
+    total: 'Jami', count: 'Soni', page: 'sahifa', of: 'dan', rows: 'qator', noData: 'Maʼlumot topilmadi', from: 'Kimdan', to: 'Kimga',
+    period: 'Davr', due: 'Muddat', paid: 'Toʻlangan', left: 'Qoldiq', days: 'ish kuni', basis: 'Asos', user: 'Foydalanuvchi', object: 'Obyekt',
+    active: 'Faol', suspended: 'Toʻxtatilgan', transferred: 'Koʻchirilgan', leftM: 'Chiqqan',
+    pensioner: 'Pensioner −50%', disabled: 'Nogironligi bor −100%', student: 'Talaba −50%', noBenefit: 'Imtiyozsiz',
+    joined: 'Qabul sanasi', order: 'Buyruq', doc: 'Aʼzolik hujjati', benefit: 'Imtiyoz', phone: 'Telefon', debtM: 'Qarz', months: 'oy',
+    history: 'Oʻzgarishlar tarixi', tariff: 'Tarif', entryFee: 'Kirish badali', monthlyFee: 'Oylik badal', decision: 'Qaror',
+    // bank
+    matched: 'Aniqlangan', unclear: 'Aniqlik kiritish talab etiladi', duplicate: 'Takroriy (hisobga olinmaydi)', payer: 'Toʻlovchi', purpose: 'Toʻlov maqsadi',
+    account: 'Hisob raqami', uploadStatement: 'Koʻchirma yuklash (CSV)', dropHint: 'CSV faylni bu yerga tashlang yoki tanlang: id;sana;summa;toʻlovchi;hisob;maqsad',
+    assign: 'Biriktirish', importedN: 'Yuklandi: {n} ta, takroriy: {d} ta', bankOnly: 'Bank hujjatisiz tushum tasdiqlanmaydi',
+    // distribution
+    source: 'Mablagʻ manbai', s_society: 'Tuman (shahar) jamiyatiga tushgan, taqsimlanadigan', s_regionDirect: 'Hududiy birlashma bevosita yigʻgan badallar',
+    s_regionOther: 'Hududiy birlashmaning boshqa taqsimlanadigan tushumlari', s_regionFromSocieties: 'Jamiyatlardan kelgan majburiy ajratmalar', s_restricted: 'Grant, xayriya, maqsadli mablagʻ',
+    to_region: 'Hududiy birlashmaga', to_center: 'Federatsiya markaziy apparatiga', to_society: 'Jamiyat ixtiyorida', to_groups: 'Tayanch guruhlarni qoʻllab-quvvatlash',
+    calc: 'Hisoblash', ruleVer: 'Qoida versiyasi', check100: 'Jami = tushum (100%)', blocked_redistribution: 'Qayta taqsimlash taqiqlangan: bu mablagʻlar 10/36/54 boʻyicha taqsimlanmaydi.',
+    blocked_separate: 'Bu mablagʻlar alohida hisobga olinadi va taqsimlanmaydi.', clarify: 'Nisbat aniqlashtirilishi kerak (Ilova 2)', rounding: 'Yaxlitlash farqi oxirgi yoʻnalishga qoʻshiladi',
+    // transfers
+    pending: 'Kutilmoqda', ordered: 'Topshiriqnoma berildi', done: 'Bajarildi', doneLate: 'Kechikib bajarildi', partial: 'Qisman', unconfirmed: 'Bank tasdigʻi yoʻq', overdue: 'Muddati oʻtgan',
+    obligation: 'Majburiyat', orderNo: 'Topshiriqnoma', bankConf: 'Bank tasdigʻi', overdueDays: 'Kechikish', createOrder: 'Topshiriqnoma yaratish', attachBank: 'Bank tasdigʻini biriktirish',
+    sod: 'Kiritgan va tasdiqlovchi turli shaxslar boʻlishi shart', escalation: 'Eskalatsiya zanjiri',
+    e1: '2 ish kuni oldin — buxgalterga', e2: 'Muddat kuni — rahbarga', e3: 'Muddat oʻtgach — yuqori rahbarga', e4: 'Uzoq kechikish — moliyaviy nazorat xizmatiga',
+    // groups
+    allocated: 'Ajratilgan (10%)', spent: 'Sarflangan', balance: 'Qoldiq', expenses: 'Xarajatlar', withDoc: 'Hujjat bilan', noDoc: 'Hujjat yoʻq', head: 'Rahbar', membersN: 'Aʼzolar',
+    // reports
+    rep_monthly: 'Oylik moliyaviy hisobot', rep_recon: 'Reyestr va tushumlar solishtirma dalolatnomasi', rep_registry: 'Aʼzolar reyestri koʻchirmasi',
+    rep_transfers: 'Ajratmalar oʻtkazilishi hisoboti', rep_groups: 'Tayanch guruhlar mablagʻlari hisoboti', rep_kpi: 'KPI koʻrsatkichlari', registers: 'Reyestrlar topshirilishi',
+    submitted: 'Topshirildi', notSubmitted: 'Topshirilmagan', late: 'Kech', onTime: 'Oʻz vaqtida', version: 'Versiya',
+    // alerts
+    tasks: 'Topshiriqlar', assignee: 'Ijrochi', measures: 'Koʻrilgan choralar', closeTask: 'Yopish', closed: 'Yopilgan', open: 'Ochiq',
+    a_overdue: 'Ajratma muddati oʻtdi', a_unclear: 'Aniqlanmagan tushum', a_register: 'Reyestr topshirilmadi', a_soon: 'Muddat yaqinlashmoqda',
+    // settings
+    rulesTitle: 'Taqsimot qoidalari (versiyalangan)', tariffsTitle: 'Tariflar', rolesTitle: 'Rollar va vakolatlar', calendar: 'Ish kunlari kalendari',
+    readOnly: 'Faqat koʻrish', perm_view: 'Koʻrish', perm_edit: 'Kiritish', perm_approve: 'Tasdiqlash', perm_admin: 'Sozlash',
+    demoNote: 'Demo maʼlumotlar. Tarif va qoidalar Kengash qarorlari bilan tasdiqlanishi kerak.',
+    saved: 'Saqlandi', exported: 'Fayl tayyorlandi', actionLogged: 'Amal audit jurnaliga yozildi',
+  },
+  ru: {
+    org: 'Федерация обществ защиты прав потребителей Узбекистана', tagline: 'Единый электронный контроль членов, взносов и отчислений',
+    login: 'Вход в систему', loginHint: 'Демо-режим: выберите роль — данные сгенерированы для теста', username: 'Логин', password: 'Пароль', role: 'Роль',
+    next: 'Продолжить', signIn: 'Войти', back: 'Назад', otpTitle: 'Двухфакторное подтверждение', otpHint: '6-значный код из SMS (демо: 246810)', otpBad: 'Неверный код',
+    secure: 'Демо: образец 2FA и журнала аудита',
+    demoBanner: 'без настоящей аутентификации, синтетические данные',
+    disclaimer: 'Неофициальный концепт-демо. Это не настоящая страница входа — никакие данные не отправляются и не сохраняются.', concept: 'Концепция · MVP демо', logout: 'Выйти', search: 'Поиск: член, общество, транзакция…',
+    dashboard: 'Панель управления', members: 'Реестр членов', fees: 'Членские взносы', bank: 'Банковские поступления', distribution: 'Расчет отчислений',
+    transfers: 'Контроль перечислений', groups: 'Опорные группы', reports: 'Отчетность', alerts: 'Уведомления', audit: 'Журнал аудита', settings: 'Правила и роли',
+    r_head: 'Руководство центрального аппарата', r_fin: 'Центральная финансово-контрольная служба', r_region: 'Руководитель территориального объединения',
+    r_chair: 'Председатель районного (городского) общества', r_acc: 'Бухгалтер', r_group: 'Руководитель опорной группы', r_auditor: 'Внутренний аудитор', r_admin: 'Администратор системы',
+    republic: 'Республика', region: 'Регион', society: 'Общество', group: 'Опорная группа', center: 'Центральный аппарат', all: 'Все',
+    k_members: 'Членов Федерации', k_collect: 'Собираемость взносов', k_debt: 'Задолженность', k_timely: 'Своевременность перечислений', k_overdue: 'Просрочено',
+    k_registers: 'Реестры в срок', k_discrep: 'Расхождение распределения', k_docs: 'Расходы с документами', received: 'Поступления', charged: 'Начислено', plan: 'План', fact: 'Факт',
+    ytd: 'с начала года', thisMonth: 'за месяц', receiptsByMonth: 'Динамика поступлений', regionsRank: 'Платежная дисциплина территорий', overdueList: 'Просроченные обязательства',
+    distShare: 'Распределение за октябрь', deadlines: 'Ближайшие сроки', pipeline: 'Цепочка движения средств',
+    p1: 'Член', p2: 'Начисление', p3: 'Поступление', p4: 'Расчет отчислений', p5: 'Платежное поручение', p6: 'Подтверждение банка', p7: 'Отчет', p8: 'Аудит',
+    name: 'Ф.И.О.', status: 'Статус', date: 'Дата', amount: 'Сумма', sum: 'сум', actions: 'Действия', details: 'Подробнее', filter: 'Фильтр', export: 'Экспорт', import: 'Импорт',
+    add: 'Добавить', save: 'Сохранить', cancel: 'Отмена', close: 'Закрыть', total: 'Итого', count: 'Кол-во', page: 'стр.', of: 'из', rows: 'строк', noData: 'Нет данных',
+    from: 'От кого', to: 'Кому', period: 'Период', due: 'Срок', paid: 'Оплачено', left: 'Остаток', days: 'раб. дн.', basis: 'Основание', user: 'Пользователь', object: 'Объект',
+    active: 'Активен', suspended: 'Приостановлен', transferred: 'Переведен', leftM: 'Вышел', pensioner: 'Пенсионер −50%', disabled: 'Инвалидность −100%', student: 'Студент −50%', noBenefit: 'Без льгот',
+    joined: 'Дата приема', order: 'Приказ', doc: 'Членский документ', benefit: 'Льгота', phone: 'Телефон', debtM: 'Долг', months: 'мес.', history: 'История изменений',
+    tariff: 'Тариф', entryFee: 'Вступительный', monthlyFee: 'Ежемесячный', decision: 'Решение',
+    matched: 'Идентифицировано', unclear: 'Требуется уточнение', duplicate: 'Повтор (не учитывается)', payer: 'Плательщик', purpose: 'Назначение', account: 'Счет',
+    uploadStatement: 'Загрузить выписку (CSV)', dropHint: 'Перетащите CSV или выберите файл: id;дата;сумма;плательщик;счет;назначение', assign: 'Привязать',
+    importedN: 'Загружено: {n}, повторов: {d}', bankOnly: 'Без банковского документа поступление не подтверждается',
+    source: 'Источник средств', s_society: 'Поступления районного (городского) общества, подлежащие распределению', s_regionDirect: 'Взносы, собранные территориальным объединением напрямую',
+    s_regionOther: 'Иные распределяемые поступления территориального объединения', s_regionFromSocieties: 'Обязательные отчисления от обществ', s_restricted: 'Гранты, пожертвования, целевые средства',
+    to_region: 'Территориальному объединению', to_center: 'Центральному аппарату', to_society: 'В распоряжении общества', to_groups: 'На поддержку опорных групп',
+    calc: 'Рассчитать', ruleVer: 'Версия правила', check100: 'Итого = поступление (100%)', blocked_redistribution: 'Повторное распределение запрещено: эти средства не распределяются по 10/36/54.',
+    blocked_separate: 'Эти средства учитываются обособленно и не распределяются.', clarify: 'Соотношение требует уточнения (Прил. 2)', rounding: 'Разница округления — в последнее направление',
+    pending: 'Ожидается', ordered: 'Поручение выдано', done: 'Исполнено', doneLate: 'Исполнено с опозданием', partial: 'Частично', unconfirmed: 'Нет подтверждения банка', overdue: 'Просрочено',
+    obligation: 'Обязательство', orderNo: 'Поручение', bankConf: 'Подтверждение банка', overdueDays: 'Просрочка', createOrder: 'Создать поручение', attachBank: 'Привязать подтверждение банка',
+    sod: 'Ввод и подтверждение — разными лицами', escalation: 'Цепочка эскалации', e1: 'За 2 раб. дня — бухгалтеру', e2: 'В день срока — руководителю', e3: 'После просрочки — вышестоящему', e4: 'Длительная — финконтролю',
+    allocated: 'Выделено (10%)', spent: 'Израсходовано', balance: 'Остаток', expenses: 'Расходы', withDoc: 'С документом', noDoc: 'Без документа', head: 'Руководитель', membersN: 'Членов',
+    rep_monthly: 'Ежемесячный финансовый отчет', rep_recon: 'Акт сверки реестра и поступлений', rep_registry: 'Выгрузка реестра членов', rep_transfers: 'Отчет о перечислении отчислений',
+    rep_groups: 'Отчет по средствам опорных групп', rep_kpi: 'Показатели KPI', registers: 'Сдача реестров', submitted: 'Сдан', notSubmitted: 'Не сдан', late: 'С опозданием', onTime: 'В срок', version: 'Версия',
+    tasks: 'Поручения', assignee: 'Исполнитель', measures: 'Принятые меры', closeTask: 'Закрыть', closed: 'Закрыто', open: 'Открыто',
+    a_overdue: 'Просрочено отчисление', a_unclear: 'Неидентифицированное поступление', a_register: 'Реестр не сдан', a_soon: 'Приближается срок',
+    rulesTitle: 'Правила распределения (версии)', tariffsTitle: 'Тарифы', rolesTitle: 'Роли и полномочия', calendar: 'Календарь рабочих дней', readOnly: 'Только просмотр',
+    perm_view: 'Просмотр', perm_edit: 'Ввод', perm_approve: 'Утверждение', perm_admin: 'Настройка', demoNote: 'Демо-данные. Тарифы и правила подлежат утверждению решениями Совета.',
+    saved: 'Сохранено', exported: 'Файл сформирован', actionLogged: 'Действие записано в журнал аудита',
+  },
+  en: {
+    org: 'Federation of Consumer Rights Protection Societies of Uzbekistan', tagline: 'Unified electronic control of members, fees and allocations',
+    login: 'Sign in', loginHint: 'Demo mode: pick a role — data is generated for testing', username: 'Login', password: 'Password', role: 'Role', next: 'Continue', signIn: 'Sign in', back: 'Back',
+    otpTitle: 'Two-factor verification', otpHint: '6-digit SMS code (demo: 246810)', otpBad: 'Wrong code', secure: 'Demo: sample 2FA and audit trail',
+    demoBanner: 'no real authentication, synthetic data',
+    disclaimer: 'Unofficial concept demo. This is not a real sign-in page — no data is sent or stored.', concept: 'Concept · MVP demo', logout: 'Sign out',
+    search: 'Search: member, society, transaction…', dashboard: 'Dashboard', members: 'Member registry', fees: 'Membership fees', bank: 'Bank receipts', distribution: 'Allocation calculator',
+    transfers: 'Transfer control', groups: 'Support groups', reports: 'Reports', alerts: 'Notifications', audit: 'Audit log', settings: 'Rules & roles',
+    r_head: 'Central office leadership', r_fin: 'Central finance & control', r_region: 'Territorial association head', r_chair: 'District society chair', r_acc: 'Accountant',
+    r_group: 'Support group head', r_auditor: 'Internal auditor', r_admin: 'System administrator', republic: 'Republic', region: 'Region', society: 'Society', group: 'Support group', center: 'Central office', all: 'All',
+    k_members: 'Members', k_collect: 'Fee collection rate', k_debt: 'Arrears', k_timely: 'On-time transfers', k_overdue: 'Overdue', k_registers: 'Registers on time', k_discrep: 'Allocation variance', k_docs: 'Expenses documented',
+    received: 'Received', charged: 'Charged', plan: 'Plan', fact: 'Actual', ytd: 'year to date', thisMonth: 'this month', receiptsByMonth: 'Receipts trend', regionsRank: 'Regional payment discipline',
+    overdueList: 'Overdue obligations', distShare: 'October allocation', deadlines: 'Upcoming deadlines', pipeline: 'Money flow chain',
+    p1: 'Member', p2: 'Fee charged', p3: 'Bank receipt', p4: 'Allocation', p5: 'Payment order', p6: 'Bank confirmation', p7: 'Report', p8: 'Audit',
+    name: 'Full name', status: 'Status', date: 'Date', amount: 'Amount', sum: 'UZS', actions: 'Actions', details: 'Details', filter: 'Filter', export: 'Export', import: 'Import', add: 'Add', save: 'Save',
+    cancel: 'Cancel', close: 'Close', total: 'Total', count: 'Count', page: 'page', of: 'of', rows: 'rows', noData: 'No data', from: 'From', to: 'To', period: 'Period', due: 'Due', paid: 'Paid', left: 'Outstanding',
+    days: 'work days', basis: 'Basis', user: 'User', object: 'Object', active: 'Active', suspended: 'Suspended', transferred: 'Transferred', leftM: 'Left',
+    pensioner: 'Pensioner −50%', disabled: 'Disability −100%', student: 'Student −50%', noBenefit: 'No benefit', joined: 'Joined', order: 'Order', doc: 'Member card', benefit: 'Benefit', phone: 'Phone',
+    debtM: 'Debt', months: 'mo', history: 'Change history', tariff: 'Tariff', entryFee: 'Entry fee', monthlyFee: 'Monthly fee', decision: 'Decision',
+    matched: 'Matched', unclear: 'Needs clarification', duplicate: 'Duplicate (ignored)', payer: 'Payer', purpose: 'Purpose', account: 'Account', uploadStatement: 'Upload statement (CSV)',
+    dropHint: 'Drop a CSV or pick a file: id;date;amount;payer;account;purpose', assign: 'Assign', importedN: 'Imported: {n}, duplicates: {d}', bankOnly: 'No receipt is confirmed without a bank document',
+    source: 'Source of funds', s_society: 'District society receipts subject to allocation', s_regionDirect: 'Fees collected directly by the territorial association', s_regionOther: 'Other allocable receipts of the association',
+    s_regionFromSocieties: 'Mandatory allocations received from societies', s_restricted: 'Grants, donations, earmarked funds', to_region: 'Territorial association', to_center: 'Federation central office',
+    to_society: 'Retained by society', to_groups: 'Support groups', calc: 'Calculate', ruleVer: 'Rule version', check100: 'Total = receipt (100%)',
+    blocked_redistribution: 'Re-allocation is blocked: these funds are not split 10/36/54.', blocked_separate: 'These funds are accounted separately and not allocated.',
+    clarify: 'Ratio to be confirmed (Annex 2)', rounding: 'Rounding difference goes to the last line', pending: 'Pending', ordered: 'Order issued', done: 'Completed', doneLate: 'Completed late',
+    partial: 'Partial', unconfirmed: 'No bank confirmation', overdue: 'Overdue', obligation: 'Obligation', orderNo: 'Order', bankConf: 'Bank confirmation', overdueDays: 'Delay',
+    createOrder: 'Create payment order', attachBank: 'Attach bank confirmation', sod: 'Entry and approval by different people', escalation: 'Escalation chain',
+    e1: '2 work days before — accountant', e2: 'On due date — head', e3: 'After due — superior', e4: 'Long overdue — finance control',
+    allocated: 'Allocated (10%)', spent: 'Spent', balance: 'Balance', expenses: 'Expenses', withDoc: 'Documented', noDoc: 'No document', head: 'Head', membersN: 'Members',
+    rep_monthly: 'Monthly financial report', rep_recon: 'Registry vs receipts reconciliation', rep_registry: 'Member registry export', rep_transfers: 'Allocation transfer report',
+    rep_groups: 'Support group funds report', rep_kpi: 'KPI indicators', registers: 'Register submissions', submitted: 'Submitted', notSubmitted: 'Not submitted', late: 'Late', onTime: 'On time', version: 'Version',
+    tasks: 'Tasks', assignee: 'Assignee', measures: 'Measures taken', closeTask: 'Close', closed: 'Closed', open: 'Open',
+    a_overdue: 'Allocation overdue', a_unclear: 'Unidentified receipt', a_register: 'Register not submitted', a_soon: 'Deadline approaching',
+    rulesTitle: 'Allocation rules (versioned)', tariffsTitle: 'Tariffs', rolesTitle: 'Roles & permissions', calendar: 'Working-day calendar', readOnly: 'Read only',
+    perm_view: 'View', perm_edit: 'Enter', perm_approve: 'Approve', perm_admin: 'Configure', demoNote: 'Demo data. Tariffs and rules must be approved by Council decisions.',
+    saved: 'Saved', exported: 'File ready', actionLogged: 'Action recorded in audit log',
+  },
+};
+D.ru.app = D.en.app = D.uz.app;
+
+let lang = 'uz';
+try { lang = localStorage.getItem('fn.lang') || 'uz'; } catch (e) { /* storage blocked */ }
+export const getLang = () => lang;
+export function setLang(l) { lang = l; try { localStorage.setItem('fn.lang', l); } catch (e) { /* ignore */ } }
+export function t(k, vars) {
+  let s = (D[lang] && D[lang][k]) || D.uz[k] || k;
+  if (vars) for (const v in vars) s = s.replace(`{${v}}`, vars[v]);
+  return s;
+}
+const MONTH_NAMES = {
+  uz: ['yan', 'fev', 'mar', 'apr', 'may', 'iyn', 'iyl', 'avg', 'sen', 'okt', 'noy', 'dek'],
+  ru: ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+};
+export const mon = (m) => MONTH_NAMES[lang][m];

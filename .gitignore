@@ -1,0 +1,19 @@
+# source / unused assets
+assets/logo-source.jpg
+assets/logo.webp
+# python
+__pycache__/
+*.pyc
+# env / secrets (future Supabase wiring)
+.env
+.env.*
+*.key
+# editor / OS / agent
+.claude/
+.vscode/
+.idea/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+desktop.ini

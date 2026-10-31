@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef3fa">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<script src="js/theme.js"></script>
+<title>Federatsiya Nazorat</title>
+<meta name="description" content="Federatsiya aʼzolari, aʼzolik badallari va ajratmalarining yagona elektron nazorat tizimi — konsepsiya MVP">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preload" href="assets/logo-256.webp" as="image">
+<link rel="modulepreload" href="js/app.js">
+<link rel="modulepreload" href="js/data.js">
+<link rel="modulepreload" href="js/store.js">
+<link rel="modulepreload" href="js/ui.js">
+<link rel="modulepreload" href="js/i18n.js">
+<link rel="modulepreload" href="js/modules/dashboard.js">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<!-- Background: navy gradient + emblem redrawn as light lines (scales, people, octagram). Pure SVG, ~4 KB, no image decode. -->
+<div class="bg" aria-hidden="true">
+  <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
+  <svg class="emblem" viewBox="0 0 600 600" fill="none">
+    <defs>
+      <linearGradient id="eg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--e1)"/><stop offset=".55" style="stop-color:var(--e2)"/><stop offset="1" style="stop-color:var(--e3)"/></linearGradient>
+      <path id="arc" d="M300 300m-232 0a232 232 0 1 1 0 .1"/>
+    </defs>
+    <g stroke="url(#eg)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="300" cy="300" r="272"/>
+      <circle cx="300" cy="300" r="256" stroke-width="1"/>
+      <circle class="ticks" cx="300" cy="300" r="264" stroke-width="5" stroke-dasharray="1 15"/>
+      <!-- scales -->
+      <path d="M372 182v296M322 478h100M228 214c48 6 96-8 144-26 48 18 96 32 144 26"/>
+      <path d="M246 214l-38 120M246 214l38 120M196 334c14 26 86 26 100 0Z"/>
+      <path d="M498 214l-38 120M498 214l38 120M448 334c14 26 86 26 100 0Z"/>
+      <!-- three figures -->
+      <circle cx="322" cy="268" r="19"/><path d="M296 300c8-8 44-8 52 0l-6 118h-40Z"/>
+      <circle cx="420" cy="268" r="19"/><path d="M394 300c8-8 44-8 52 0l-4 118h-42Z"/>
+      <circle cx="372" cy="252" r="22" style="stroke:var(--e-gold)"/><path d="M342 288c10-10 50-10 60 0l-8 170h-44Z" style="stroke:var(--e-gold)"/>
+      <!-- octagram with crescent and star -->
+      <g transform="translate(372 120)">
+        <rect x="-40" y="-40" width="80" height="80" rx="3" style="stroke:var(--e-red)"/>
+        <rect x="-40" y="-40" width="80" height="80" rx="3" transform="rotate(45)" style="stroke:var(--e-red)"/>
+        <path d="M6-24a24 24 0 1 0 0 48 19 19 0 1 1 0-48Z" style="stroke:var(--e-red)"/>
+        <path d="M14-4l2.4 5 5.4.6-4 3.7 1.1 5.4-4.9-2.8-4.8 2.8 1-5.4-4-3.7 5.5-.6Z" style="stroke:var(--e-red)" stroke-width="1.4"/>
+      </g>
+    </g>
+    <text class="arc-text"><textPath href="#arc" startOffset="6%">OʻZHHQJF · FEDERATSIYA NAZORAT · OʻZHHQJF ·</textPath></text>
+  </svg>
+  <div class="grain"></div>
+</div>
+
+<!-- ============ LOGIN ============ -->
+<main id="login" class="login" hidden>
+  <section class="login-hero">
+    <img src="assets/logo-256.webp" width="112" height="112" alt="OʻZHHQJF" class="hero-logo" decoding="async">
+    <p class="eyebrow" data-t="concept"></p>
+    <h1>Federatsiya<br><span>Nazorat</span></h1>
+    <p class="hero-org" data-t="org"></p>
+    <p class="hero-tag" data-t="tagline"></p>
+    <ol class="flow" id="loginFlow"></ol>
+  </section>
+  <section class="login-card glass">
+    <div class="lc-head">
+      <h2 data-t="login"></h2>
+      <div class="lc-tools"><div id="langLogin"></div><span id="themeLogin"></span></div>
+    </div>
+    <form id="loginForm" autocomplete="off">
+      <div class="step" data-step="1">
+        <p class="muted small" data-t="loginHint"></p>
+        <div class="roles" id="roleList"></div>
+        <label class="field"><span data-t="username"></span><input id="lgUser" value="demo.user" spellcheck="false"></label>
+        <label class="field"><span data-t="password"></span><input id="lgPass" type="password" value="••••••••••"></label>
+        <button class="btn primary block" type="submit"><span data-t="next"></span></button>
+      </div>
+      <div class="step" data-step="2" hidden>
+        <div class="otp-ic"></div>
+        <h3 data-t="otpTitle"></h3>
+        <p class="muted small" data-t="otpHint"></p>
+        <div class="otp" id="otp"></div>
+        <p class="err" id="otpErr" hidden></p>
+        <button class="btn primary block" type="submit"><span data-t="signIn"></span></button>
+        <button class="btn ghost block" type="button" id="otpBack"><span data-t="back"></span></button>
+      </div>
+    </form>
+    <p class="secure" id="secureLine"></p>
+    <p class="disclaimer" data-t="disclaimer"></p>
+  </section>
+</main>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app" class="app" hidden>
+  <nav class="rail glass" id="rail"></nav>
+  <div class="main">
+    <header class="top glass" id="top"></header>
+    <div class="view" id="view"></div>
+  </div>
+</div>
+
+<aside id="drawer" class="drawer glass" aria-live="polite">
+  <header><h3 class="dr-title"></h3><button class="icon-btn" data-action="closeDrawer" aria-label="close">×</button></header>
+  <div class="dr-body"></div>
+</aside>
+<div id="tip" class="tip" hidden></div>
+<div id="toasts" class="toasts"></div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
