@@ -113,7 +113,7 @@ async function route() {
   view.style.animation = 'none'; void view.offsetWidth; view.style.animation = '';
   view.querySelectorAll('.card').forEach((c, i) => c.style.setProperty('--i', Math.min(i, 14)));
   if (mod.mount) mod.mount(view.firstElementChild, rerender);
-  requestAnimationFrame(() => syncSegments());
+  syncSegments();
   window.scrollTo({ top: 0 });
 }
 async function rerender() {

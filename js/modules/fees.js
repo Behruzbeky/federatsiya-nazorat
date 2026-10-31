@@ -1,5 +1,5 @@
 import { t, mon } from '../i18n.js';
-import { table, esc, num, short, pct, bar, card, kpi, downloadCSV, icon, segmented } from '../ui.js';
+import { table, esc, num, short, pct, bar, card, kpi, downloadCSV, icon, segmented, delta } from '../ui.js';
 import { societies, members, S, regionName, metrics, scopeType } from '../store.js';
 import { AGG, TARIFFS, MONTHS, BENEFITS, REGIONS } from '../data.js';
 import { F, wire, opt, drillBar } from './_common.js';
@@ -11,11 +11,18 @@ export function render() {
   const cnt = {}; ms.forEach((m) => { if (m.status === 'active') cnt[m.society] = (cnt[m.society] || 0) + 1; });
   rows = societies().filter((s) => (!f.region || s.region === f.region) && (!f.soc || s.id === f.soc)).map((s) => {
     const a = AGG[s.id];
-    const ch = f.m === 'ytd' ? a.charged.reduce((x, y) => x + y, 0) : a.charged[+f.m];
-    const rc = f.m === 'ytd' ? a.received.reduce((x, y) => x + y, 0) : a.received[+f.m];
-    return { s, ch, rc, debt: Math.max(0, ch - rc), over: Math.max(0, rc - ch), rate: rc / (ch || 1), n: cnt[s.id] || 0 };
+    // current period and the one before it (previous month, or year-to-date one month earlier)
+    const sum = (arr, to) => arr.slice(0, to + 1).reduce((x, y) => x + y, 0);
+    const k = f.m === 'ytd' ? MONTHS - 1 : +f.m;
+    const ch = f.m === 'ytd' ? sum(a.charged, k) : a.charged[k];
+    const rc = f.m === 'ytd' ? sum(a.received, k) : a.received[k];
+    const pch = k === 0 ? null : f.m === 'ytd' ? sum(a.charged, k - 1) : a.charged[k - 1];
+    const prc = k === 0 ? null : f.m === 'ytd' ? sum(a.received, k - 1) : a.received[k - 1];
+    return { s, ch, rc, pch, prc, debt: Math.max(0, ch - rc), pdebt: pch == null ? null : Math.max(0, pch - prc), rate: rc / (ch || 1), prate: pch ? prc / pch : null, n: cnt[s.id] || 0 };
   }).sort((a, b) => a.rate - b.rate);
-  const tot = rows.reduce((o, r) => ({ ch: o.ch + r.ch, rc: o.rc + r.rc, debt: o.debt + r.debt }), { ch: 0, rc: 0, debt: 0 });
+  const tot = rows.reduce((o, r) => ({ ch: o.ch + r.ch, rc: o.rc + r.rc, debt: o.debt + r.debt, pch: o.pch + (r.pch || 0), prc: o.prc + (r.prc || 0), pdebt: o.pdebt + (r.pdebt || 0) }), { ch: 0, rc: 0, debt: 0, pch: 0, prc: 0, pdebt: 0 });
+  const hasPrev = !(f.m === '0');
+  const monthMode = f.m !== 'ytd';
   const m = metrics();
   const cols = [
     { label: t('society'), render: (r) => `<b>${esc(r.s.name)}</b><br><small>${esc(regionName(r.s.region))}</small>` },
@@ -23,7 +30,7 @@ export function render() {
     { label: t('charged'), cls: 'r', render: (r) => num(r.ch) },
     { label: t('received'), cls: 'r', render: (r) => num(r.rc) },
     { label: t('debtM'), cls: 'r', render: (r) => (r.debt ? `<b style="color:#ff7b83">${num(r.debt)}</b>` : '0') },
-    { label: t('k_collect'), render: (r) => `<div style="display:grid;grid-template-columns:110px 48px;gap:10px;align-items:center">${bar(r.rate, r.rate < 0.7 ? 'red' : r.rate > 0.9 ? 'ok' : '')}<b>${pct(r.rate, 0)}</b></div>` },
+    { label: t('k_collect'), render: (r) => `<div style="display:grid;grid-template-columns:110px 48px;gap:10px;align-items:center;display:inline-grid">${bar(r.rate, r.rate < 0.7 ? 'red' : r.rate > 0.9 ? 'ok' : '')}<b>${pct(r.rate, 0)}</b></div>${r.prate != null ? delta({ now: r.rate, prev: r.prate, pp: true }) : ''}` },
   ];
   const T = TARIFFS;
   const tariffs = card(t('tariffsTitle'), `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>${t('version')}</th><th>${t('period')}</th><th class="r">${t('monthlyFee')}</th><th class="r">${t('entryFee')}</th><th>${t('decision')}</th></tr></thead>
@@ -33,10 +40,10 @@ export function render() {
   const months = [['ytd', t('ytd')], ...Array.from({ length: MONTHS }, (_, i) => [String(i), mon(i)])];
   return `<div class="page-h"><div><h1>${t('fees')}</h1><p>${t('demoNote')}</p></div><div class="card-a"><button class="btn" id="fExport">${icon('download', 15)} CSV</button></div></div>
     ${drillBar('fees')}<div class="grid g4" style="margin-bottom:14px">
-      ${kpi({ label: t('charged'), value: `${short(tot.ch)} <small>${t('sum')}</small>`, sub: f.m === 'ytd' ? t('ytd') : mon(+f.m), ic: 'fees' })}
-      ${kpi({ label: t('received'), value: `${short(tot.rc)} <small>${t('sum')}</small>`, sub: t('bankOnly'), ic: 'bank', tone: 'ok', drill: `bank?st=matched&m=${f.m === 'ytd' ? '' : f.m}&region=${f.region}&soc=${f.soc}` })}
-      ${kpi({ label: t('debtM'), value: `${short(tot.debt)} <small>${t('sum')}</small>`, sub: `${num(rows.filter((r) => r.debt > 0).length)} ${t('society').toLowerCase()}`, ic: 'alert', tone: 'bad', drill: `members?debt=1&region=${f.region}` })}
-      ${kpi({ label: t('k_collect'), value: pct(tot.rc / (tot.ch || 1)), sub: `${t('ytd')}: ${pct(m.collect)}`, ic: 'up', spark: m.received })}
+      ${kpi({ label: t('charged'), value: `${short(tot.ch)} <small>${t('sum')}</small>`, sub: f.m === 'ytd' ? t('ytd') : mon(+f.m), ic: 'fees', d: monthMode && hasPrev ? { now: tot.ch, prev: tot.pch } : null })}
+      ${kpi({ label: t('received'), value: `${short(tot.rc)} <small>${t('sum')}</small>`, sub: t('bankOnly'), ic: 'bank', tone: 'ok', d: monthMode && hasPrev ? { now: tot.rc, prev: tot.prc } : null, drill: `bank?st=matched&m=${f.m === 'ytd' ? '' : f.m}&region=${f.region}&soc=${f.soc}` })}
+      ${kpi({ label: t('debtM'), value: `${short(tot.debt)} <small>${t('sum')}</small>`, sub: `${num(rows.filter((r) => r.debt > 0).length)} ${t('society').toLowerCase()}`, ic: 'alert', tone: 'bad', d: hasPrev ? { now: tot.debt, prev: tot.pdebt, good: 'down' } : null, drill: `members?debt=1&region=${f.region}` })}
+      ${kpi({ label: t('k_collect'), value: pct(tot.rc / (tot.ch || 1)), sub: `${t('ytd')}: ${pct(m.collect)}`, ic: 'up', spark: m.received, d: hasPrev && tot.pch ? { now: tot.rc / (tot.ch || 1), prev: tot.prc / tot.pch, pp: true } : null })}
     </div>
     <div class="grid g-main"><section class="card"><header class="card-h"><h3>${t('k_collect')}</h3><div class="card-a" style="overflow-x:auto;max-width:100%">${segmented('feesM', months, f.m)}</div></header>
       ${scopeType() === 'republic' ? `<div class="toolbar"><select class="inp" data-f="region">${opt('', `${t('region')}: ${t('all')}`, f.region)}${REGIONS.map((r) => opt(r.id, regionName(r.id), f.region)).join('')}</select></div>` : ''}

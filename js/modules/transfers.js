@@ -1,6 +1,6 @@
 import { t, mon } from '../i18n.js';
 import { table, pill, esc, num, short, kpi, date, icon, segmented, toast, downloadCSV, card, pct } from '../ui.js';
-import { obligations, S, can, log, orgName, resetCache } from '../store.js';
+import { obligations, S, can, log, orgName, resetCache, metrics } from '../store.js';
 import { MONTHS, TODAY } from '../data.js';
 import { F, wire, opt, drillBar } from './_common.js';
 
@@ -16,6 +16,7 @@ export function render() {
   const due = all.filter((o) => o.dueDate < TODAY);
   const ok = due.filter((o) => o.status === 'done').length;
   const bad = all.filter((o) => BAD.includes(o.status));
+  const mp = metrics().prev;
   const cols = [
     { label: t('obligation'), render: (o) => `<span class="mono">${esc(o.id)}</span><br><small>${mon(o.month)} · ${o.rule} · ${o.pct}%</small>` },
     { label: `${t('from')} → ${t('to')}`, cls: 'wrap', render: (o) => `<b>${esc(orgName(o.from))}</b><br><small>→ ${esc(orgName(o.to))}</small>` },
@@ -33,8 +34,8 @@ export function render() {
   return `<div class="page-h"><div><h1>${t('transfers')}</h1><p>${t('obligation')} → ${t('orderNo')} → ${t('bankConf')} → ${t('left')}</p></div>
     <div class="card-a"><button class="btn" id="tExport">${icon('download', 15)} CSV</button></div></div>
     <div class="grid g4" style="margin-bottom:14px">
-      ${kpi({ label: t('k_timely'), value: pct(ok / (due.length || 1)), sub: `${num(ok)} / ${num(due.length)}`, ic: 'transfers', tone: 'ok', drill: 'transfers?st=done' })}
-      ${kpi({ label: t('k_overdue'), value: num(bad.length), sub: `${short(bad.reduce((s, o) => s + o.amount - o.paid, 0))} ${t('sum')}`, ic: 'clock', tone: 'bad', drill: 'transfers?st=problem' })}
+      ${kpi({ label: t('k_timely'), value: pct(ok / (due.length || 1)), sub: `${num(ok)} / ${num(due.length)}`, ic: 'transfers', tone: 'ok', drill: 'transfers?st=done', d: { now: ok / (due.length || 1), prev: mp.timely, pp: true } })}
+      ${kpi({ label: t('k_overdue'), value: num(bad.length), sub: `${short(bad.reduce((s, o) => s + o.amount - o.paid, 0))} ${t('sum')}`, ic: 'clock', tone: 'bad', drill: 'transfers?st=problem', d: { now: bad.length, prev: mp.overdueN, good: 'down' } })}
       ${kpi({ label: t('unconfirmed'), value: num(all.filter((o) => o.status === 'unconfirmed').length), sub: t('bankOnly'), ic: 'bank', tone: 'warn', drill: 'transfers?st=unconfirmed' })}
       ${kpi({ label: `${t('pending')} · ${mon(MONTHS - 1)}`, value: num(all.filter((o) => ['pending', 'ordered'].includes(o.status)).length), sub: `${t('due')}: ${date(all.find((o) => o.month === MONTHS - 1)?.dueDate)}`, ic: 'calendar', drill: 'transfers?st=open' })}
     </div>

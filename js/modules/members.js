@@ -1,7 +1,7 @@
 import { t, mon } from '../i18n.js';
 import { table, pill, esc, money, date, num, short, icon, drawer, downloadCSV, kpi, pct } from '../ui.js';
 import { members, S, orgName, regionName, scopeType, can } from '../store.js';
-import { REGIONS, memberDebt, memberRate, TARIFFS, byId } from '../data.js';
+import { REGIONS, memberDebt, memberRate, TARIFFS, byId, MONTHS } from '../data.js';
 import { F, wire, opt, drillBar } from './_common.js';
 
 const ST = { active: 'active', suspended: 'suspended', transferred: 'transferred', left: 'leftM' };
@@ -22,6 +22,8 @@ export function render() {
   const all = members();
   const debtors = all.filter((m) => memberDebt(m) > 0).length;
   const fresh = all.filter((m) => m.joined.getFullYear() === 2026).length;
+  const cut = new Date(2026, MONTHS - 1, 1); // end of the previous month
+  const prevAll = all.filter((m) => m.joined < cut).length, prevFresh = all.filter((m) => m.joined.getFullYear() === 2026 && m.joined < cut).length;
   const cols = [
     { label: t('id'), render: (m) => `<span class="mono">${esc(m.id)}</span>` },
     { label: t('name'), render: (m) => `<b>${esc(m.name)}</b><br><small>${esc(m.doc)} · ${esc(m.phone)}</small>` },
@@ -35,8 +37,8 @@ export function render() {
   return `<div class="page-h"><div><h1>${t('members')}</h1><p>${t('demoNote')}</p></div>
     <div class="card-a"><button class="btn" id="mExport">${icon('download', 15)} CSV</button>${can('edit') || can('approve') ? `<button class="btn primary" id="mAdd">${icon('plus', 15)} ${t('add')}</button>` : ''}</div></div>
     <div class="grid g4" style="margin-bottom:14px">
-      ${kpi({ label: t('k_members'), value: num(all.length), sub: `${t('active')}: ${num(all.filter((m) => m.status === 'active').length)}`, ic: 'members', drill: 'members' })}
-      ${kpi({ label: '2026', value: `+${num(fresh)}`, sub: t('joined'), ic: 'up', tone: 'ok', drill: 'members?joined=2026' })}
+      ${kpi({ label: t('k_members'), value: num(all.length), sub: `${t('active')}: ${num(all.filter((m) => m.status === 'active').length)}`, ic: 'members', drill: 'members', d: { now: all.length, prev: prevAll } })}
+      ${kpi({ label: '2026', value: `+${num(fresh)}`, sub: t('joined'), ic: 'up', tone: 'ok', drill: 'members?joined=2026', d: { now: fresh, prev: prevFresh } })}
       ${kpi({ label: t('debtM'), value: num(debtors), sub: pct(debtors / (all.length || 1)), ic: 'alert', tone: 'bad', drill: 'members?debt=1' })}
       ${kpi({ label: t('benefit'), value: num(all.filter((m) => m.benefit).length), sub: `${t('pensioner').split(' ')[0]}, ${t('student').split(' ')[0]}…`, ic: 'scale', drill: 'members?benefit=any' })}
     </div>

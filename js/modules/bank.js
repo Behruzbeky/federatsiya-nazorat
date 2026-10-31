@@ -14,6 +14,8 @@ export function render() {
   const sum = (st) => base.filter((b) => b.status === st).reduce((s, b) => s + b.amount, 0);
   const cnt = (st) => base.filter((b) => b.status === st).length;
   const period = f.m === '' ? t('ytd') : `${mon(+f.m)} 2026`;
+  // a selected month is compared with the month before it
+  const prevRc = f.m === '' || +f.m === 0 ? null : bank().filter((b) => b.month === +f.m - 1 && b.status === 'matched' && (!f.region || b.region === f.region) && (!f.soc || b.society === f.soc)).reduce((s, b) => s + b.amount, 0);
   const total = rows.filter((b) => b.status !== 'duplicate').reduce((s, b) => s + b.amount, 0);
   const cols = [
     { label: 'TXN', render: (b) => `<span class="mono">${esc(b.id)}</span>` },
@@ -28,7 +30,7 @@ export function render() {
   return `<div class="page-h"><div><h1>${t('bank')}</h1><p>${t('bankOnly')}</p></div><div class="card-a"><button class="btn" id="bExport">${icon('download', 15)} CSV</button></div></div>
     ${drillBar('bank')}
     <div class="grid g4" style="margin-bottom:14px">
-      ${kpi({ label: `${t('received')} · ${period}`, value: `${short(sum('matched'))} <small>${t('sum')}</small>`, sub: `${num(cnt('matched'))} TXN`, ic: 'bank', tone: 'ok', drill: `bank?st=matched&${keep}` })}
+      ${kpi({ label: `${t('received')} · ${period}`, value: `${short(sum('matched'))} <small>${t('sum')}</small>`, sub: `${num(cnt('matched'))} TXN`, ic: 'bank', tone: 'ok', drill: `bank?st=matched&${keep}`, d: prevRc == null ? null : { now: sum('matched'), prev: prevRc } })}
       ${kpi({ label: t('unclear'), value: num(cnt('unclear')), sub: `${short(sum('unclear'))} ${t('sum')}`, ic: 'alert', tone: 'warn', drill: `bank?st=unclear&${keep}` })}
       ${kpi({ label: t('duplicate'), value: num(cnt('duplicate')), sub: `${short(sum('duplicate'))} ${t('sum')}`, ic: 'x', tone: 'bad', drill: `bank?st=duplicate&${keep}` })}
       ${kpi({ label: t('k_discrep'), value: `0 <small>${t('sum')}</small>`, sub: t('check100'), ic: 'scale', tone: 'ok', drill: 'distribution' })}

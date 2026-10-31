@@ -78,8 +78,24 @@ export function metrics() {
     const regs = registers().filter((r) => r.due < TODAY);
     const regOk = regs.filter((r) => r.submitted && r.submitted <= r.due).length;
     const ex = expenses(); const exDoc = ex.filter((e) => e.doc).reduce((s, e) => s + e.amount, 0); const exAll = ex.reduce((s, e) => s + e.amount, 0);
+    // the same indicators as they stood at the end of the previous month, for the change badges
+    const L = received.length - 1, cut = new Date(TODAY.getFullYear(), L, 1);
+    const pch = ch - charged[L], prc = rc - received[L];
+    const pobs = obs.filter((o) => o.dueDate < cut);
+    const pover = obligations().filter((o) => o.dueDate < cut && (['overdue', 'partial', 'unconfirmed'].includes(o.status) || (o.status === 'doneLate' && o.bankDate >= cut)));
+    const pregs = regs.filter((r) => r.due < cut);
+    const pex = ex.filter((e) => e.date < cut);
+    const prev = {
+      total: ms.filter((m) => m.joined < cut).length, active: ms.filter((m) => m.status === 'active' && m.joined < cut).length,
+      ch: pch, rc: prc, collect: prc / (pch || 1), debt: debt - (charged[L] - received[L]),
+      timely: pobs.filter((o) => o.status === 'done').length / (pobs.length || 1),
+      overdueN: pover.length, overdueSum: pover.reduce((s, o) => s + (o.amount - (o.status === 'doneLate' ? 0 : o.paid)), 0),
+      registers: pregs.filter((r) => r.submitted && r.submitted <= r.due).length / (pregs.length || 1),
+      docs: pex.filter((e) => e.doc).reduce((s, e) => s + e.amount, 0) / (pex.reduce((s, e) => s + e.amount, 0) || 1),
+      month: received[L - 1],
+    };
     return { total: ms.length, active, ch, rc, collect: rc / (ch || 1), debt, timely: onTime / (obs.length || 1), overdue, overdueSum,
-      registers: regOk / (regs.length || 1), docs: exDoc / (exAll || 1), received, charged };
+      registers: regOk / (regs.length || 1), docs: exDoc / (exAll || 1), received, charged, prev };
   });
 }
 

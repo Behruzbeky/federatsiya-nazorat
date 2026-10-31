@@ -58,10 +58,24 @@ export const pill = (key, label) => `<span class="pill ${TONE[key] || 'mute'}"><
 /** data-drill attributes: clicking navigates to the records a number was computed from (see app.js). */
 export const drillAttr = (to, label) => (to ? ` data-drill="${esc(to)}" data-drill-label="${esc(label || '')}"` : '');
 
-export function kpi({ label, value, sub, trend, tone = '', ic = 'up', spark, drill }) {
+/**
+ * Change badge vs the previous period. good: 'up' when growth is good (green), 'down' when a fall is good
+ * (debt, overdue). pp: the value is a rate, so show the difference in percentage points.
+ */
+export function delta({ now, prev, good = 'up', pp = false, id = '' }) {
+  if (prev == null || (!pp && !prev)) return '';
+  const ch = pp ? (now - prev) * 100 : ((now - prev) / Math.abs(prev)) * 100;
+  const dir = ch > 0.05 ? 'up' : ch < -0.05 ? 'down' : 'flat';
+  const tone = dir === 'flat' ? 'flat' : (dir === good ? 'pos' : 'neg');
+  const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '•';
+  return `<span class="delta ${tone}"${id ? ` data-dk="${esc(id)}"` : ''} title="${esc(t('vsPrev'))}">${arrow} ${Math.abs(ch).toFixed(1)}${pp ? ` ${t('pp')}` : '%'}</span>`;
+}
+export function setDelta(root, id, d) { const el = root.querySelector(`[data-dk="${id}"]`); if (el) el.outerHTML = delta({ ...d, id }); }
+
+export function kpi({ label, value, sub, trend, tone = '', ic = 'up', spark, drill, d }) {
   return `<div class="card kpi ${tone} ${drill ? 'drill' : ''}"${drillAttr(drill, label)}>${drill ? `<span class="drill-go">${icon('chevron', 14)}</span>` : ''}
     <div class="kpi-top"><span class="kpi-ic">${icon(ic, 16)}</span><span class="kpi-label">${esc(label)}</span></div>
-    <div class="kpi-value">${value}</div>
+    <div class="kpi-value">${value}${d ? delta(d) : ''}</div>
     <div class="kpi-sub">${trend ? `<b class="${trend.startsWith('-') || trend.startsWith('−') ? 'neg' : 'pos'}">${esc(trend)}</b>` : ''}<span>${esc(sub || '')}</span></div>
     ${spark ? sparkline(spark) : ''}</div>`;
 }

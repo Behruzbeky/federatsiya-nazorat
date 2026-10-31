@@ -1,5 +1,5 @@
 import { t, mon } from '../i18n.js';
-import { kpi, card, donut, gauge, setGauge, short, num, pct, esc, pill, date, icon, segmented, drillAttr } from '../ui.js';
+import { kpi, card, donut, gauge, setGauge, short, num, pct, esc, pill, date, icon, segmented, drillAttr, delta, setDelta } from '../ui.js';
 import { areaChart, mountCharts, updateChart, capsules, updateCapsule, countUp } from '../charts.js';
 import { metrics, ranking, obligations, registers, societies, S, orgName, scopeType, resetCache, regionName } from '../store.js';
 import { distribute, MONTHS, TODAY, AUDIT, AGG, BANK, nthWorkday, byId, YEAR } from '../data.js';
@@ -24,13 +24,20 @@ export function render() {
   const labels = Array.from({ length: MONTHS - from }, (_, i) => mon(from + i));
 
   const top = `<div class="grid g4">
-    ${kpi({ label: t('k_members'), value: `<span data-k="active">${num(m.active)}</span>`, sub: `${t('total')}: ${num(m.total)}`, ic: 'members', tone: 'hl', spark: [3, 4, 4, 5, 5, 6, 6, 7, 7, 8], drill: 'members?status=active' })}
-    ${kpi({ label: t('k_collect'), value: `<span data-k="collect" data-v="${m.collect}">${pct(m.collect)}</span>`, sub: `${short(m.rc)} / ${short(m.ch)}`, ic: 'fees', tone: m.collect > 0.85 ? 'ok' : 'warn', spark: m.received, drill: 'fees' })}
-    ${kpi({ label: t('k_debt'), value: `<span data-k="debt" data-v="${m.debt}">${short(m.debt)}</span> <small>${t('sum')}</small>`, sub: t('ytd'), ic: 'alert', tone: 'bad', spark: m.charged.map((c, i) => c - m.received[i]), drill: 'members?debt=1' })}
-    ${kpi({ label: t('k_timely'), value: pct(m.timely), sub: `${t('k_overdue')}: ${num(m.overdue.length)} · ${short(m.overdueSum)}`, ic: 'transfers', tone: m.timely > 0.8 ? 'ok' : 'warn', drill: 'transfers?st=problem' })}
+    ${kpi({ label: t('k_members'), value: `<span data-k="active">${num(m.active)}</span>`, sub: `${t('total')}: ${num(m.total)}`, ic: 'members', tone: 'hl', spark: [3, 4, 4, 5, 5, 6, 6, 7, 7, 8], drill: 'members?status=active', d: { now: m.active, prev: m.prev.active } })}
+    ${kpi({ label: t('k_collect'), value: `<span data-k="collect" data-v="${m.collect}">${pct(m.collect)}</span>`, sub: `${short(m.rc)} / ${short(m.ch)}`, ic: 'fees', tone: m.collect > 0.85 ? 'ok' : 'warn', spark: m.received, drill: 'fees', d: { now: m.collect, prev: m.prev.collect, pp: true, id: 'collect' } })}
+    ${kpi({ label: t('k_debt'), value: `<span data-k="debt" data-v="${m.debt}">${short(m.debt)}</span> <small>${t('sum')}</small>`, sub: t('ytd'), ic: 'alert', tone: 'bad', spark: m.charged.map((c, i) => c - m.received[i]), drill: 'members?debt=1', d: { now: m.debt, prev: m.prev.debt, good: 'down', id: 'debt' } })}
+    ${kpi({ label: t('k_timely'), value: pct(m.timely), sub: `${t('k_overdue')}: ${num(m.overdue.length)} · ${short(m.overdueSum)}`, ic: 'transfers', tone: m.timely > 0.8 ? 'ok' : 'warn', drill: 'transfers?st=problem', d: { now: m.timely, prev: m.prev.timely, pp: true } })}
+  </div>`;
+  // KPI set from section 11 of the concept, each with its change vs the end of last month
+  const low = `<div class="grid g4">
+    ${kpi({ label: t('k_registers'), value: pct(m.registers), sub: t('ytd'), ic: 'reports', tone: m.registers > 0.85 ? 'ok' : 'warn', drill: 'reports', d: { now: m.registers, prev: m.prev.registers, pp: true } })}
+    ${kpi({ label: t('k_discrep'), value: `0 <small>${t('sum')}</small>`, sub: t('check100'), ic: 'scale', tone: 'ok', drill: 'distribution', d: { now: 0, prev: 0, pp: true } })}
+    ${kpi({ label: t('k_docs'), value: pct(m.docs), sub: t('groups'), ic: 'file', tone: m.docs > 0.9 ? 'ok' : 'warn', drill: 'groups?nodoc=1', d: { now: m.docs, prev: m.prev.docs, pp: true } })}
+    ${kpi({ label: t('k_overdue'), value: `${short(m.overdueSum)} <small>${t('sum')}</small>`, sub: `${num(m.overdue.length)} ${t('obligation').toLowerCase()}`, ic: 'clock', tone: 'bad', drill: 'transfers?st=problem', d: { now: m.overdueSum, prev: m.prev.overdueSum, good: 'down' } })}
   </div>`;
 
-  const chart = card(t('receiptsByMonth'), `<p class="muted small" style="margin:-8px 0 6px">${t('plan')} / ${t('fact')} · <span class="num drill"${drillAttr(`bank?st=matched&m=${MONTHS - 1}`, `${t('received')} · ${mon(MONTHS - 1)}`)}><span data-k="rcMonth" data-v="${last}">${short(last)}</span> ${t('sum')} — ${mon(MONTHS - 1)}</span></p>
+  const chart = card(t('receiptsByMonth'), `<p class="muted small" style="margin:-8px 0 6px">${t('plan')} / ${t('fact')} · <span class="num drill"${drillAttr(`bank?st=matched&m=${MONTHS - 1}`, `${t('received')} · ${mon(MONTHS - 1)}`)}><span data-k="rcMonth" data-v="${last}">${short(last)}</span> ${t('sum')} — ${mon(MONTHS - 1)}</span> ${delta({ now: last, prev: m.prev.month, id: 'month' })}</p>
       ${areaChart('rcpt', m.charged.slice(from), m.received.slice(from), labels, { unit: t('sum'), planLabel: t('plan'), drill: (i) => [`bank?st=matched&m=${from + i}`, `${t('received')} · ${mon(from + i)} 2026`] })}`,
   { actions: segmented('dashRange', [['q', '3 oy'], ['h', '6 oy'], ['year', String(YEAR)]], f.range) });
 
@@ -67,6 +74,7 @@ export function render() {
     <div class="grid" style="gap:14px">${top}
       <div class="grid g-main">${chart}${side}</div>
       <div class="grid g-main">${caps}${live}</div>
+      ${low}
       ${pipeline}
       <div class="grid g-main">${odCard}${dlCard}</div></div>`;
 }
@@ -90,6 +98,9 @@ function tick(root) {
     countUp(root.querySelector('[data-k="debt"]'), m.debt, (v) => short(v));
     countUp(root.querySelector('[data-k="rc"]'), m.rc, (v) => short(v));
     countUp(root.querySelector('[data-k="rcMonth"]'), m.received[MONTHS - 1], (v) => short(v));
+    setDelta(root, 'collect', { now: m.collect, prev: m.prev.collect, pp: true });
+    setDelta(root, 'debt', { now: m.debt, prev: m.prev.debt, good: 'down' });
+    setDelta(root, 'month', { now: m.received[MONTHS - 1], prev: m.prev.month });
     root.querySelectorAll('[data-k="collect"],[data-k="rc"],[data-k="rcMonth"]').forEach((el) => { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); });
     updateChart('rcpt', m.received.slice(from), m.charged.slice(from));
     setGauge(root.querySelector('#dGauge'), m.collect);

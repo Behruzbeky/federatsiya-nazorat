@@ -119,6 +119,16 @@ body.in-app .emblem { opacity: calc(var(--emblem-app) * 2.2); }
   .chart .fact { stroke-dashoffset: 0; } .chart .plan, .chart .area { opacity: 1; } .gauge .arc { stroke-dashoffset: var(--off); }
 }
 
+/* ---------- change badges (KPI deltas vs previous period) ---------- */
+.kpi-value { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.delta { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; letter-spacing: 0; white-space: nowrap; vertical-align: middle;
+  border: 1px solid transparent; font-variant-numeric: tabular-nums; line-height: 1.3; transition: background .3s, color .3s; }
+.delta.pos { color: var(--ok); background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.28); }
+.delta.neg { color: var(--bad-t); background: rgba(239,59,69,.1); border-color: rgba(239,59,69,.28); }
+.delta.flat { color: var(--mute); background: var(--glass); border-color: var(--line); }
+.kpi.hl .delta { color: #fff; background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.35); }
+.tbl .delta { padding: 1px 7px; font-size: 10.5px; margin-left: 6px; }
+
 /* ---------- performance ---------- */
 /* the emblem is static in the app: blur it once so it reads as 'behind frosted glass'; it's rasterised a single time */
 body.in-app .emblem { filter: blur(2px); }
