@@ -1,15 +1,15 @@
 import { t, mon } from '../i18n.js';
 import { table, esc, num, short, pct, bar, card, kpi, downloadCSV, icon, segmented } from '../ui.js';
-import { societies, members, S, regionName, metrics } from '../store.js';
-import { AGG, TARIFFS, MONTHS, BENEFITS } from '../data.js';
-import { F, wire } from './_common.js';
+import { societies, members, S, regionName, metrics, scopeType } from '../store.js';
+import { AGG, TARIFFS, MONTHS, BENEFITS, REGIONS } from '../data.js';
+import { F, wire, opt, drillBar } from './_common.js';
 
 let rows = [];
 export function render() {
-  const f = F('fees', { m: 'ytd' });
+  const f = F('fees', { m: 'ytd', region: '', soc: '' });
   const ms = members();
   const cnt = {}; ms.forEach((m) => { if (m.status === 'active') cnt[m.society] = (cnt[m.society] || 0) + 1; });
-  rows = societies().map((s) => {
+  rows = societies().filter((s) => (!f.region || s.region === f.region) && (!f.soc || s.id === f.soc)).map((s) => {
     const a = AGG[s.id];
     const ch = f.m === 'ytd' ? a.charged.reduce((x, y) => x + y, 0) : a.charged[+f.m];
     const rc = f.m === 'ytd' ? a.received.reduce((x, y) => x + y, 0) : a.received[+f.m];
@@ -32,14 +32,15 @@ export function render() {
     <div class="note">${icon('clock', 16)}<span>Avtomatik hisoblashda tarifning kuchga kirgan sanasi hisobga olinadi; oʻtgan davrlar qayta hisoblanmaydi.</span></div>`);
   const months = [['ytd', t('ytd')], ...Array.from({ length: MONTHS }, (_, i) => [String(i), mon(i)])];
   return `<div class="page-h"><div><h1>${t('fees')}</h1><p>${t('demoNote')}</p></div><div class="card-a"><button class="btn" id="fExport">${icon('download', 15)} CSV</button></div></div>
-    <div class="grid g4" style="margin-bottom:14px">
+    ${drillBar('fees')}<div class="grid g4" style="margin-bottom:14px">
       ${kpi({ label: t('charged'), value: `${short(tot.ch)} <small>${t('sum')}</small>`, sub: f.m === 'ytd' ? t('ytd') : mon(+f.m), ic: 'fees' })}
-      ${kpi({ label: t('received'), value: `${short(tot.rc)} <small>${t('sum')}</small>`, sub: t('bankOnly'), ic: 'bank', tone: 'ok' })}
-      ${kpi({ label: t('debtM'), value: `${short(tot.debt)} <small>${t('sum')}</small>`, sub: `${num(rows.filter((r) => r.debt > 0).length)} ${t('society').toLowerCase()}`, ic: 'alert', tone: 'bad' })}
+      ${kpi({ label: t('received'), value: `${short(tot.rc)} <small>${t('sum')}</small>`, sub: t('bankOnly'), ic: 'bank', tone: 'ok', drill: `bank?st=matched&m=${f.m === 'ytd' ? '' : f.m}&region=${f.region}&soc=${f.soc}` })}
+      ${kpi({ label: t('debtM'), value: `${short(tot.debt)} <small>${t('sum')}</small>`, sub: `${num(rows.filter((r) => r.debt > 0).length)} ${t('society').toLowerCase()}`, ic: 'alert', tone: 'bad', drill: `members?debt=1&region=${f.region}` })}
       ${kpi({ label: t('k_collect'), value: pct(tot.rc / (tot.ch || 1)), sub: `${t('ytd')}: ${pct(m.collect)}`, ic: 'up', spark: m.received })}
     </div>
     <div class="grid g-main"><section class="card"><header class="card-h"><h3>${t('k_collect')}</h3><div class="card-a" style="overflow-x:auto;max-width:100%">${segmented('feesM', months, f.m)}</div></header>
-      ${table(rows, cols, { page: S.pages.fees || 0, id: 'fees', size: 15 })}</section>${tariffs}</div>`;
+      ${scopeType() === 'republic' ? `<div class="toolbar"><select class="inp" data-f="region">${opt('', `${t('region')}: ${t('all')}`, f.region)}${REGIONS.map((r) => opt(r.id, regionName(r.id), f.region)).join('')}</select></div>` : ''}
+      ${table(rows, cols, { page: S.pages.fees || 0, id: 'fees', size: 15, rowDrill: (r) => [`bank?st=matched&soc=${r.s.id}&m=${f.m === 'ytd' ? '' : f.m}`, `${r.s.name} · ${f.m === 'ytd' ? t('ytd') : mon(+f.m)}`] })}</section>${tariffs}</div>`;
 }
 
 export function mount(el, rerender) {

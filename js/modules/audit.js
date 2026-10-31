@@ -22,10 +22,10 @@ export function render() {
   return `<div class="page-h"><div><h1>${t('audit')}</h1><p>Kim, qachon va qanday asosda oʻzgartirdi yoki tasdiqladi — yozuvlar oʻchirilmaydi.</p></div>
     <div class="card-a"><button class="btn" id="aExport">${icon('download', 15)} CSV</button></div></div>
     <div class="grid g4" style="margin-bottom:14px">
-      ${kpi({ label: t('total'), value: num(AUDIT.length), sub: t('audit'), ic: 'audit' })}
+      ${kpi({ label: t('total'), value: num(AUDIT.length), sub: t('audit'), ic: 'audit', drill: 'audit' })}
       ${kpi({ label: t('thisMonth'), value: num(today), sub: '31.10.2026', ic: 'clock' })}
-      ${kpi({ label: t('bankConf'), value: num(AUDIT.filter((a) => a.kind === 'confirm').length), sub: 'TXN', ic: 'bank', tone: 'ok' })}
-      ${kpi({ label: '2FA', value: num(AUDIT.filter((a) => a.kind === 'login').length), sub: t('login'), ic: 'lock' })}
+      ${kpi({ label: t('bankConf'), value: num(AUDIT.filter((a) => a.kind === 'confirm').length), sub: 'TXN', ic: 'bank', tone: 'ok', drill: 'audit?kind=confirm' })}
+      ${kpi({ label: '2FA', value: num(AUDIT.filter((a) => a.kind === 'login').length), sub: t('login'), ic: 'lock', drill: 'audit?kind=login' })}
     </div>
     <section class="card"><div class="toolbar"><input class="inp grow" data-f="q" value="${esc(f.q)}" placeholder="${esc(t('search'))}">
       <select class="inp" data-f="kind">${opt('', t('all'), f.kind)}${KINDS.map((k) => opt(k, k, f.kind)).join('')}</select></div>

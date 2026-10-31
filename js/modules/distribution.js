@@ -43,7 +43,7 @@ export function render() {
     { label: t('received'), cls: 'r', render: (r) => num(r.base) },
     ...['region', 'center', 'society', 'groups'].map((k, i) => ({ label: `${t('to_' + k).split(' ')[0]} ${[20, 10, 60, 10][i]}%`, cls: 'r', render: (r) => num(r.d[i].sum) })),
     { label: '∑', cls: 'r', render: (r) => (r.d.reduce((a, b) => a + b.sum, 0) === r.base ? '<span style="color:var(--ok)">✓</span>' : '✗') },
-  ], { page: S.pages.dist || 0, id: 'dist', size: 12 }));
+  ], { page: S.pages.dist || 0, id: 'dist', size: 12, rowDrill: (r) => [`bank?st=matched&soc=${r.s.id}&m=${last}`, `${r.s.name} · ${mon(last)}`] }));
 
   return `<div class="page-h"><div><h1>${t('distribution')}</h1><p>${t('rounding')}</p></div></div>
     <div class="grid g-main" style="margin-bottom:14px">${calc}${examples}</div>${tbl}

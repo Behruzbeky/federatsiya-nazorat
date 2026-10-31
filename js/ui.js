@@ -55,8 +55,11 @@ const TONE = { done: 'ok', matched: 'ok', active: 'ok', onTime: 'ok', closed: 'o
   unconfirmed: 'bad', overdue: 'bad', duplicate: 'mute', notSubmitted: 'bad', noDoc: 'bad', transferred: 'info', leftM: 'mute' };
 export const pill = (key, label) => `<span class="pill ${TONE[key] || 'mute'}"><i></i>${esc(label || t(key))}</span>`;
 
-export function kpi({ label, value, sub, trend, tone = '', ic = 'up', spark }) {
-  return `<div class="card kpi ${tone}">
+/** data-drill attributes: clicking navigates to the records a number was computed from (see app.js). */
+export const drillAttr = (to, label) => (to ? ` data-drill="${esc(to)}" data-drill-label="${esc(label || '')}"` : '');
+
+export function kpi({ label, value, sub, trend, tone = '', ic = 'up', spark, drill }) {
+  return `<div class="card kpi ${tone} ${drill ? 'drill' : ''}"${drillAttr(drill, label)}>${drill ? `<span class="drill-go">${icon('chevron', 14)}</span>` : ''}
     <div class="kpi-top"><span class="kpi-ic">${icon(ic, 16)}</span><span class="kpi-label">${esc(label)}</span></div>
     <div class="kpi-value">${value}</div>
     <div class="kpi-sub">${trend ? `<b class="${trend.startsWith('-') || trend.startsWith('−') ? 'neg' : 'pos'}">${esc(trend)}</b>` : ''}<span>${esc(sub || '')}</span></div>
@@ -104,12 +107,12 @@ export function syncSegments(root = document) {
 }
 
 /** Paginated table. cols: [{k, label, render, cls}] */
-export function table(rows, cols, { page = 0, size = 25, id = 'tbl', empty } = {}) {
+export function table(rows, cols, { page = 0, size = 25, id = 'tbl', empty, rowDrill } = {}) {
   const pages = Math.max(1, Math.ceil(rows.length / size));
   const p = Math.min(page, pages - 1);
   const slice = rows.slice(p * size, p * size + size);
   const head = cols.map((c) => `<th class="${c.cls || ''}">${esc(c.label)}</th>`).join('');
-  const body = slice.length ? slice.map((r, i) => `<tr data-row="${p * size + i}">${cols.map((c) => `<td class="${c.cls || ''}">${c.render ? c.render(r) : esc(r[c.k])}</td>`).join('')}</tr>`).join('')
+  const body = slice.length ? slice.map((r, i) => `<tr data-row="${p * size + i}"${rowDrill ? ` class="drill"${drillAttr(...rowDrill(r))}` : ''}>${cols.map((c) => `<td class="${c.cls || ''}">${c.render ? c.render(r) : esc(r[c.k])}</td>`).join('')}</tr>`).join('')
     : `<tr><td colspan="${cols.length}" class="empty">${esc(empty || t('noData'))}</td></tr>`;
   return `<div class="tbl-wrap"><table class="tbl" id="${id}"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>
     <div class="pager"><span>${num(rows.length)} ${t('rows')}</span><div>

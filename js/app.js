@@ -148,6 +148,16 @@ function wire() {
       document.dispatchEvent(new CustomEvent('seg', { detail: { name, value: seg.dataset.segV } }));
       return;
     }
+    // drill-down: "page?key=value&…" → open that page filtered to the records behind the number
+    const dr = e.target.closest('[data-drill]');
+    if (dr && !e.target.closest('button:not([data-drill]), a[href]:not([data-drill]), input, select')) {
+      const [page, qs = ''] = dr.dataset.drill.split('?');
+      const params = Object.fromEntries(new URLSearchParams(qs));
+      if (dr.dataset.drillLabel) params._via = dr.dataset.drillLabel;
+      S.filters[page] = params; S.pages[page] = 0;
+      if (S.page === page) rerender(); else location.hash = `#/${page}`;
+      return;
+    }
     const role = e.target.closest('[data-role]');
     if (role) { pickedRole = ROLES.find((r) => r.id === role.dataset.role); renderRoles(); return; }
     const a = e.target.closest('[data-action]');

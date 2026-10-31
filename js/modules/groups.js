@@ -2,7 +2,7 @@ import { t } from '../i18n.js';
 import { table, esc, num, short, kpi, date, icon, drawer, pill, bar, pct, downloadCSV } from '../ui.js';
 import { groups, members, expenses, S, orgName, regionName } from '../store.js';
 import { memberRate, memberDebt, byId } from '../data.js';
-import { wire } from './_common.js';
+import { wire, F, drillBar } from './_common.js';
 
 let rows = [];
 function build() {
@@ -19,6 +19,8 @@ function build() {
 
 export function render() {
   build();
+  const f = F('groups', { nodoc: '' });
+  const shown = f.nodoc ? rows.filter((r) => r.docs < 1) : rows;
   const tot = rows.reduce((o, r) => ({ a: o.a + r.alloc, s: o.s + r.spent, b: o.b + r.bal }), { a: 0, s: 0, b: 0 });
   const ex = expenses(); const noDoc = ex.filter((e) => !e.doc);
   const cols = [
@@ -37,9 +39,9 @@ export function render() {
       ${kpi({ label: t('allocated'), value: `${short(tot.a)} <small>${t('sum')}</small>`, sub: `${num(rows.length)} ${t('group').toLowerCase()}`, ic: 'groups' })}
       ${kpi({ label: t('spent'), value: `${short(tot.s)} <small>${t('sum')}</small>`, sub: pct(tot.s / (tot.a || 1)), ic: 'fees' })}
       ${kpi({ label: t('balance'), value: `${short(tot.b)} <small>${t('sum')}</small>`, sub: t('ytd'), ic: 'bank', tone: 'ok' })}
-      ${kpi({ label: t('noDoc'), value: num(noDoc.length), sub: `${short(noDoc.reduce((s, e) => s + e.amount, 0))} ${t('sum')}`, ic: 'file', tone: 'bad' })}
+      ${kpi({ label: t('noDoc'), value: num(noDoc.length), sub: `${short(noDoc.reduce((s, e) => s + e.amount, 0))} ${t('sum')}`, ic: 'file', tone: 'bad', drill: 'groups?nodoc=1' })}
     </div>
-    <section class="card">${table(rows, cols, { page: S.pages.groups || 0, id: 'groups', size: 20 })}</section>`;
+    ${drillBar('groups')}<section class="card">${table(shown, cols, { page: S.pages.groups || 0, id: 'groups', size: 20 })}</section>`;
 }
 
 export function mount(el, rerender) {
@@ -47,7 +49,7 @@ export function mount(el, rerender) {
   el.querySelectorAll('#groups tbody tr[data-row]').forEach((tr) => tr.classList.add('click'));
   el.addEventListener('click', (e) => {
     const tr = e.target.closest('#groups tr[data-row]'); if (!tr) return;
-    const r = rows[+tr.dataset.row];
+    const r = (F('groups').nodoc ? rows.filter((x) => x.docs < 1) : rows)[+tr.dataset.row];
     const ms = members().filter((m) => m.group === r.g.id).slice(0, 40);
     const ex = expenses().filter((x) => x.group === r.g.id);
     drawer(orgName(r.g.id), `<dl class="kv"><dt>${t('society')}</dt><dd>${esc(byId[r.g.society].name)}</dd><dt>${t('head')}</dt><dd>${esc(r.g.head)}</dd>

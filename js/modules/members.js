@@ -2,17 +2,18 @@ import { t, mon } from '../i18n.js';
 import { table, pill, esc, money, date, num, short, icon, drawer, downloadCSV, kpi, pct } from '../ui.js';
 import { members, S, orgName, regionName, scopeType, can } from '../store.js';
 import { REGIONS, memberDebt, memberRate, TARIFFS, byId } from '../data.js';
-import { F, wire, opt } from './_common.js';
+import { F, wire, opt, drillBar } from './_common.js';
 
 const ST = { active: 'active', suspended: 'suspended', transferred: 'transferred', left: 'leftM' };
 let filtered = [];
 
 function apply() {
-  const f = F('members', { q: '', status: '', benefit: '', region: '', debt: '' });
+  const f = F('members', { q: '', status: '', benefit: '', region: '', debt: '', joined: '' });
   const q = f.q.trim().toLowerCase();
   filtered = members().filter((m) => (!q || m.name.toLowerCase().includes(q) || m.id.toLowerCase().includes(q) || m.doc.toLowerCase().includes(q))
     && (!f.status || m.status === f.status) && (!f.region || m.region === f.region)
-    && (!f.benefit || (f.benefit === 'none' ? !m.benefit : m.benefit === f.benefit)) && (!f.debt || memberDebt(m) > 0));
+    && (!f.benefit || (f.benefit === 'none' ? !m.benefit : f.benefit === 'any' ? !!m.benefit : m.benefit === f.benefit)) && (!f.debt || memberDebt(m) > 0)
+    && (!f.joined || m.joined.getFullYear() === +f.joined));
   return f;
 }
 
@@ -34,12 +35,12 @@ export function render() {
   return `<div class="page-h"><div><h1>${t('members')}</h1><p>${t('demoNote')}</p></div>
     <div class="card-a"><button class="btn" id="mExport">${icon('download', 15)} CSV</button>${can('edit') || can('approve') ? `<button class="btn primary" id="mAdd">${icon('plus', 15)} ${t('add')}</button>` : ''}</div></div>
     <div class="grid g4" style="margin-bottom:14px">
-      ${kpi({ label: t('k_members'), value: num(all.length), sub: `${t('active')}: ${num(all.filter((m) => m.status === 'active').length)}`, ic: 'members' })}
-      ${kpi({ label: '2026', value: `+${num(fresh)}`, sub: t('joined'), ic: 'up', tone: 'ok' })}
-      ${kpi({ label: t('debtM'), value: num(debtors), sub: pct(debtors / (all.length || 1)), ic: 'alert', tone: 'bad' })}
-      ${kpi({ label: t('benefit'), value: num(all.filter((m) => m.benefit).length), sub: `${t('pensioner').split(' ')[0]}, ${t('student').split(' ')[0]}…`, ic: 'scale' })}
+      ${kpi({ label: t('k_members'), value: num(all.length), sub: `${t('active')}: ${num(all.filter((m) => m.status === 'active').length)}`, ic: 'members', drill: 'members' })}
+      ${kpi({ label: '2026', value: `+${num(fresh)}`, sub: t('joined'), ic: 'up', tone: 'ok', drill: 'members?joined=2026' })}
+      ${kpi({ label: t('debtM'), value: num(debtors), sub: pct(debtors / (all.length || 1)), ic: 'alert', tone: 'bad', drill: 'members?debt=1' })}
+      ${kpi({ label: t('benefit'), value: num(all.filter((m) => m.benefit).length), sub: `${t('pensioner').split(' ')[0]}, ${t('student').split(' ')[0]}…`, ic: 'scale', drill: 'members?benefit=any' })}
     </div>
-    <section class="card"><div class="toolbar">
+    ${drillBar('members')}<section class="card"><div class="toolbar">
       <input class="inp grow" data-f="q" value="${esc(f.q)}" placeholder="${esc(t('search'))}">
       <select class="inp" data-f="status">${opt('', `${t('status')}: ${t('all')}`, f.status)}${Object.entries(ST).map(([k, v]) => opt(k, t(v), f.status)).join('')}</select>
       <select class="inp" data-f="benefit">${opt('', `${t('benefit')}: ${t('all')}`, f.benefit)}${opt('none', t('noBenefit'), f.benefit)}${['pensioner', 'disabled', 'student'].map((b) => opt(b, t(b), f.benefit)).join('')}</select>

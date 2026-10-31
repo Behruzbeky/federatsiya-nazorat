@@ -7,30 +7,30 @@
   --font: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
   --glass-card: linear-gradient(140deg, rgba(255,255,255,.6), rgba(255,255,255,.24)); --glass-edge: rgba(255,255,255,.8); --glass-edge2: rgba(255,255,255,.14);
   --orb-a: #3b82f6; --orb-b: #ef4444; --orb-c: #06b6d4; --orb-d: #8b5cf6; --orb-e: #f59e0b; --orb-op: .5; --glare: rgba(255,255,255,.6);
-  --chrome: rgba(255,255,255,.4); --thead: rgba(255,255,255,.6); --surface: rgba(255,255,255,.4);
+  --chrome: rgba(255,255,255,.4); --rail: rgba(255,255,255,.62); --thead: rgba(255,255,255,.6); --surface: rgba(255,255,255,.4);
 }
 :root[data-theme="dark"] {
   --glass-card: linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.035)); --glass-edge: rgba(255,255,255,.3); --glass-edge2: rgba(255,255,255,.05);
   --orb-a: #1d5fe0; --orb-b: #c81e2b; --orb-c: #0e7490; --orb-d: #5b21b6; --orb-e: #b45309; --orb-op: .6; --glare: rgba(255,255,255,.14);
-  --chrome: rgba(14,24,54,.42); --thead: rgba(14,24,54,.72); --surface: rgba(255,255,255,.05);
+  --chrome: rgba(14,24,54,.42); --rail: rgba(14,24,54,.72); --thead: rgba(14,24,54,.72); --surface: rgba(255,255,255,.05);
 }
 body { font-family: var(--font); letter-spacing: -.005em; }
 button, input, select { font-family: var(--font); }
 
 /* living colour under the glass: transform-only animation, composited on the GPU */
-.orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: var(--orb-op); will-change: transform; animation: drift 38s ease-in-out infinite alternate; }
-.o1 { width: 46vw; height: 46vw; left: 48%; top: -12%; background: var(--orb-a); }
-.o2 { width: 30vw; height: 30vw; left: 74%; top: 46%; background: var(--orb-b); animation-duration: 44s; animation-delay: -12s; opacity: calc(var(--orb-op) * .7); }
-.o3 { width: 36vw; height: 36vw; left: -8%; top: 50%; background: var(--orb-c); animation-duration: 52s; animation-delay: -20s; }
-.o4 { width: 28vw; height: 28vw; left: 22%; top: -10%; background: var(--orb-d); animation-duration: 47s; animation-delay: -6s; opacity: calc(var(--orb-op) * .6); }
-.o5 { width: 22vw; height: 22vw; left: 40%; top: 70%; background: var(--orb-e); animation-duration: 41s; animation-delay: -30s; opacity: calc(var(--orb-op) * .45); }
+.orb { position: absolute; border-radius: 50%; opacity: var(--orb-op); background: radial-gradient(closest-side, var(--c), transparent); background: radial-gradient(closest-side, var(--c) 0%, color-mix(in srgb, var(--c) 55%, transparent) 45%, transparent 100%); animation: drift 38s ease-in-out infinite alternate; }
+body.in-app .orb { animation: none; }
+.o1 { width: 46vw; height: 46vw; left: 48%; top: -12%; --c: var(--orb-a); }
+.o2 { width: 30vw; height: 30vw; left: 74%; top: 46%; --c: var(--orb-b); animation-duration: 44s; animation-delay: -12s; opacity: calc(var(--orb-op) * .7); }
+.o3 { width: 36vw; height: 36vw; left: -8%; top: 50%; --c: var(--orb-c); animation-duration: 52s; animation-delay: -20s; }
+.o4 { width: 28vw; height: 28vw; left: 22%; top: -10%; --c: var(--orb-d); animation-duration: 47s; animation-delay: -6s; opacity: calc(var(--orb-op) * .6); }
+.o5 { width: 22vw; height: 22vw; left: 40%; top: 70%; --c: var(--orb-e); animation-duration: 41s; animation-delay: -30s; opacity: calc(var(--orb-op) * .45); }
 @keyframes drift { 0% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(-6vw, 5vh, 0) scale(1.12); } 100% { transform: translate3d(4vw, -4vh, 0) scale(.92); } }
 .glow { display: none; }
 body.in-app .emblem { opacity: calc(var(--emblem-app) * 2.2); }
 
 /* frosted card */
 .card { background: var(--glass-card); border: 1px solid var(--glass-edge2);
-  backdrop-filter: blur(24px) saturate(175%); -webkit-backdrop-filter: blur(24px) saturate(175%);
   box-shadow: inset 0 1px 0 var(--glass-edge), inset 0 -10px 30px -18px rgba(255,255,255,.25), 0 18px 40px -22px rgba(15,35,90,.45);
   contain: layout; isolation: isolate; overflow: hidden; }
 /* specular rim: bright top-left edge fading out, like thick glass */
@@ -49,14 +49,15 @@ body.in-app .emblem { opacity: calc(var(--emblem-app) * 2.2); }
 
 /* liquid drop: refraction through an SVG displacement map (Chromium); other browsers keep plain blur */
 .rail, .top, .drawer, .login-card { background: var(--chrome); backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%); }
-@supports (backdrop-filter: url(#liquid)) { .rail, .top, .login-card { backdrop-filter: url(#liquid) blur(10px) saturate(185%); } }
+@supports (backdrop-filter: url(#liquid)) { .login-card { backdrop-filter: url(#liquid) blur(10px) saturate(185%); } }
+.rail { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--rail); }
 .rail, .top, .login-card { border: 1px solid var(--glass-edge2); box-shadow: inset 0 1px 0 var(--glass-edge), inset 0 -12px 24px -16px rgba(255,255,255,.35), 0 20px 50px -24px rgba(15,35,90,.5); }
 .btn.primary, .rail a.on { box-shadow: inset 0 1px 1px rgba(255,255,255,.6), inset 0 -2px 6px rgba(0,0,0,.12), 0 8px 22px -10px rgba(47,140,255,.8); }
 .seg-ind { box-shadow: inset 0 1px 1px rgba(255,255,255,.7), 0 3px 10px rgba(15,35,90,.18); }
 
 /* entrance: cards rise out of blur, staggered (--i set in JS) */
-@keyframes glassIn { from { opacity: 0; transform: translateY(14px) scale(.985); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
-.page .card { animation: glassIn .6s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 45ms); }
+@keyframes glassIn { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
+.page .card { animation: glassIn .5s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 35ms); }
 .page.settled .card, .page.settled .cap i, .page.settled .donut .seg, .page.settled .gauge .arc { animation: none; }
 .page.settled .gauge .arc { stroke-dashoffset: var(--off); }
 .tbl-wrap { background: transparent; }
@@ -112,8 +113,31 @@ body.in-app .emblem { opacity: calc(var(--emblem-app) * 2.2); }
 @keyframes feedIn { from { opacity: 0; transform: translateY(-10px) scale(.97); } }
 .flash { animation: flash .9s; } @keyframes flash { 30% { color: var(--ok); text-shadow: 0 0 18px rgba(52,211,153,.6); } }
 
-@media (max-width: 900px) { .orb { filter: blur(50px); } .card { backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%); } }
+@media (max-width: 900px) { .top { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); } }
 @media (prefers-reduced-motion: reduce) {
   .orb, .page .card, .chart .fact, .cap i, .gauge .arc, .donut .seg, .chart .live-ring { animation: none !important; }
   .chart .fact { stroke-dashoffset: 0; } .chart .plan, .chart .area { opacity: 1; } .gauge .arc { stroke-dashoffset: var(--off); }
 }
+
+/* ---------- performance ---------- */
+/* the emblem is static in the app: blur it once so it reads as 'behind frosted glass'; it's rasterised a single time */
+body.in-app .emblem { filter: blur(2px); }
+/* cards: own paint layer bounds, skip work for off-screen content */
+.card { contain: layout paint; }
+.page > .grid > .card, .page > section.card { content-visibility: auto; contain-intrinsic-size: auto 320px; }
+.chart .fact { filter: none; }
+.chart .fact-glow { stroke: var(--cyan); stroke-width: 8; opacity: .18; fill: none; }
+/* drill-down: every number that has a source is a link */
+.drill { cursor: pointer; transition: transform .18s, box-shadow .18s; }
+.card.drill:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 var(--glass-edge), 0 22px 44px -22px rgba(15,35,90,.55); }
+.drill-go { position: absolute; top: 14px; right: 14px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; opacity: 0; transform: scale(.8); transition: .18s; background: var(--surface2); color: var(--blue); border: 1px solid var(--line); z-index: 2; }
+.card.drill:hover .drill-go { opacity: 1; transform: none; }
+.card.drill:hover .spark { opacity: 0; }
+a.num, span.num.drill { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--line2); }
+a.num:hover, span.num.drill:hover { color: var(--blue); border-bottom-color: var(--blue); }
+.pipeline div.drill:hover { border-color: rgba(47,140,255,.45); background: var(--hover); }
+.feed > div.drill:hover, .tbl tr.drill:hover { background: var(--hover); }
+.drill-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: -6px 4px 14px; font-size: 12.5px; }
+.drill-bar .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px 5px 12px; border-radius: 999px; background: rgba(47,140,255,.12); border: 1px solid rgba(47,140,255,.3); color: var(--blue); font-weight: 600; }
+.drill-bar .chip button { border: 0; background: none; color: inherit; cursor: pointer; font-size: 15px; line-height: 1; padding: 0 2px; }
+.sumline { display: flex; justify-content: flex-end; gap: 18px; padding: 10px 4px 0; font-size: 12.5px; color: var(--mute); } .sumline b { color: var(--text); font-variant-numeric: tabular-nums; }

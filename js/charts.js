@@ -18,9 +18,9 @@ function smooth(pts) {
 }
 
 /** Placeholder; mountCharts() draws it once the card has a width. */
-export function areaChart(id, plan, fact, labels, { unit = '', planLabel = '', factLabel = '' } = {}) {
-  charts.set(id, { plan, fact, labels, unit, planLabel, factLabel, el: null, animate: true });
-  return `<div class="chart-wrap" data-chart="${esc(id)}" style="height:240px"></div>`;
+export function areaChart(id, plan, fact, labels, { unit = '', planLabel = '', factLabel = '', drill = null } = {}) {
+  charts.set(id, { plan, fact, labels, unit, planLabel, factLabel, drill, el: null, animate: true });
+  return `<div class="chart-wrap ${drill ? 'drill' : ''}" data-chart="${esc(id)}" style="height:240px"></div>`;
 }
 
 function geometry(c, w, h) {
@@ -45,12 +45,11 @@ function draw(id) {
   const labels = c.labels.map((l, i) => `<text x="${g.x(i)}" y="${h - 8}" text-anchor="middle">${esc(l)}</text>`).join('');
   const line = smooth(fp); const last = fp[fp.length - 1];
   wrap.innerHTML = `<svg class="chart ${c.animate ? '' : 'static'}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-    <defs><linearGradient id="ga-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--cyan)" stop-opacity=".38"/><stop offset="1" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient>
-      <filter id="glow-${id}" x="-10%" y="-30%" width="120%" height="160%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <defs><linearGradient id="ga-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--cyan)" stop-opacity=".38"/><stop offset="1" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient></defs>
     <g class="grid">${grid}</g><g class="axis">${labels}</g>
     <path class="area" d="${line}L${last[0]},${h - g.padB}L${fp[0][0]},${h - g.padB}Z" fill="url(#ga-${id})"/>
     <path class="plan" d="${smooth(pp)}"/>
-    <path class="fact" d="${line}" pathLength="1" filter="url(#glow-${id})"/>
+    <path class="fact-glow" d="${line}"/><path class="fact" d="${line}" pathLength="1"/>
     <circle class="live-ring" cx="${last[0]}" cy="${last[1]}" r="6"/><circle class="live-dot" cx="${last[0]}" cy="${last[1]}" r="4"/>
     <line class="xhair" y1="${g.padT}" y2="${h - g.padB}" x1="0" x2="0" visibility="hidden"/><circle class="hot" r="5.5" cx="0" cy="0" visibility="hidden"/>
     <rect x="${g.padL}" y="0" width="${w - g.padL - g.padR}" height="${h}" fill="transparent" class="hit"/></svg><div class="ctip" hidden></div>`;
@@ -67,6 +66,8 @@ function hover(wrap, e) {
   const rate = c.plan[i] ? (c.fact[i] / c.plan[i]) * 100 : 0;
   tip.innerHTML = `<span>${esc(c.labels[i])}</span><b>${num(c.fact[i])} ${esc(c.unit)}</b><span>${esc(c.planLabel)}: ${short(c.plan[i])} · ${rate.toFixed(1)}%</span>`;
   tip.style.left = `${Math.min(r.width - 90, Math.max(90, x))}px`; tip.style.top = `${y}px`; tip.hidden = false;
+  // clicking the chart opens the records behind the hovered point
+  if (c.drill) { const [to, label] = c.drill(i); wrap.dataset.drill = to; wrap.dataset.drillLabel = label; }
 }
 
 /** Draw every chart placeholder inside root and wire hover. */
@@ -99,7 +100,7 @@ export function updateCapsule(root, id, v, text) {
 /** Animate a number inside el from its current value to `to`. */
 export function countUp(el, to, fmt, ms = 900) {
   if (!el) return;
-  const from = +el.dataset.v || 0; el.dataset.v = to;
+  const from = el.dataset.v !== undefined ? +el.dataset.v : to; el.dataset.v = to;
   const t0 = performance.now();
   const step = (t) => { const k = Math.min(1, (t - t0) / ms); const e = 1 - Math.pow(1 - k, 3); el.innerHTML = fmt(from + (to - from) * e); if (k < 1) requestAnimationFrame(step); };
   requestAnimationFrame(step);

@@ -202,25 +202,32 @@ for (let m = 0; m < MONTHS; m++) {
   }
 }
 
-/* ---------- Bank statement (October) ---------- */
+/* ---------- Bank statements, Jan–Oct ---------- */
+// Matched receipts of a society in a month add up exactly to AGG.received, so every total in the UI
+// can be drilled down to the bank lines it came from.
 export const BANK = [];
 let tseq = 1;
-for (const s of SOCIETIES) {
-  let left = Math.round(AGG[s.id].received[MONTHS - 1]);
-  const parts = int(2, 5);
-  for (let p = 0; p < parts && left > 0; p++) {
-    const amt = p === parts - 1 ? left : Math.round(left * (0.2 + R() * 0.3) / 1000) * 1000;
-    left -= amt;
-    const cnt = Math.max(1, Math.round(amt / TARIFF.monthly));
-    BANK.push({ id: `TXN${String(60000000 + tseq++)}`, date: new Date(YEAR, 9, int(1, 30)), amount: amt,
-      payer: `${s.name} tayanch guruhi (roʻyxat ${cnt} nafar)`, account: s.account, society: s.id, region: s.region,
-      purpose: `Aʼzolik badali, oktyabr 2026, ${cnt} aʼzo`, status: 'matched' });
+const MON_UZ = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktyabr'];
+const lastDay = (m) => (m === MONTHS - 1 ? TODAY.getDate() : new Date(YEAR, m + 1, 0).getDate());
+for (let m = 0; m < MONTHS; m++) {
+  for (const s of SOCIETIES) {
+    let left = Math.round(AGG[s.id].received[m]);
+    AGG[s.id].received[m] = left;
+    const parts = int(2, 5);
+    for (let p = 0; p < parts && left > 0; p++) {
+      const amt = p === parts - 1 ? left : Math.min(left, Math.round(left * (0.2 + R() * 0.3) / 1000) * 1000);
+      left -= amt;
+      const cnt = Math.max(1, Math.round(amt / TARIFF.monthly));
+      BANK.push({ id: `TXN${String(60000000 + tseq++)}`, date: new Date(YEAR, m, int(1, lastDay(m))), month: m, amount: amt,
+        payer: `${s.name} tayanch guruhi (roʻyxat ${cnt} nafar)`, account: s.account, society: s.id, region: s.region,
+        purpose: `Aʼzolik badali, ${MON_UZ[m]} 2026, ${cnt} aʼzo`, status: 'matched' });
+    }
   }
 }
 const UNKNOWN = ['Jismoniy shaxs', 'XK «Baraka Savdo»', 'Naqd pul topshirish', 'P2P oʻtkazma', 'MChJ «Ishonch Servis»'];
 for (let i = 0; i < 14; i++) {
   const s = pick(SOCIETIES);
-  BANK.push({ id: `TXN${String(60000000 + tseq++)}`, date: new Date(YEAR, 9, int(1, 30)), amount: int(1, 40) * 12000,
+  BANK.push({ id: `TXN${String(60000000 + tseq++)}`, date: new Date(YEAR, 9, int(1, 30)), month: 9, amount: int(1, 40) * 12000,
     payer: pick(UNKNOWN), account: s.account, society: s.id, region: s.region, purpose: pick(['badal', 'toʻlov', 'aʼzolik uchun', '—']), status: 'unclear' });
 }
 for (let i = 0; i < 4; i++) { const src = BANK[int(0, 200)]; BANK.push({ ...src, status: 'duplicate', dupOf: src.id }); }

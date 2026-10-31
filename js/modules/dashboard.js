@@ -1,5 +1,5 @@
 import { t, mon } from '../i18n.js';
-import { kpi, card, donut, gauge, setGauge, short, num, pct, esc, pill, date, icon, segmented } from '../ui.js';
+import { kpi, card, donut, gauge, setGauge, short, num, pct, esc, pill, date, icon, segmented, drillAttr } from '../ui.js';
 import { areaChart, mountCharts, updateChart, capsules, updateCapsule, countUp } from '../charts.js';
 import { metrics, ranking, obligations, registers, societies, S, orgName, scopeType, resetCache, regionName } from '../store.js';
 import { distribute, MONTHS, TODAY, AUDIT, AGG, BANK, nthWorkday, byId, YEAR } from '../data.js';
@@ -11,7 +11,7 @@ const feed = []; // latest live receipts (kept across visits)
 let timer = 0, paused = false;
 
 const capItems = (rk) => rk.slice(0, 14).map((r) => ({ id: r.id, label: CODES[r.id] || r.name.split(' ')[0], v: r.collect, text: `${r.name}: ${pct(r.collect, 1)}`, tone: r.collect < 0.72 ? 'bad' : '' }));
-const feedRow = (f) => `<div><span class="fi">${icon('bank', 15)}</span><div><b>${esc(f.soc)}</b><small>${esc(f.id)} · ${esc(f.time)}</small></div><b>+${num(f.amount)}</b></div>`;
+const feedRow = (f) => `<div class="drill"${drillAttr(`bank?q=${f.id}`, f.id)}><span class="fi">${icon('bank', 15)}</span><div><b>${esc(f.soc)}</b><small>${esc(f.id)} · ${esc(f.time)}</small></div><b>+${num(f.amount)}</b></div>`;
 
 export function render() {
   const f = F('dashboard', { range: 'year' });
@@ -24,20 +24,20 @@ export function render() {
   const labels = Array.from({ length: MONTHS - from }, (_, i) => mon(from + i));
 
   const top = `<div class="grid g4">
-    ${kpi({ label: t('k_members'), value: `<span data-k="active">${num(m.active)}</span>`, sub: `${t('total')}: ${num(m.total)}`, ic: 'members', tone: 'hl', spark: [3, 4, 4, 5, 5, 6, 6, 7, 7, 8] })}
-    ${kpi({ label: t('k_collect'), value: `<span data-k="collect">${pct(m.collect)}</span>`, sub: `${short(m.rc)} / ${short(m.ch)}`, ic: 'fees', tone: m.collect > 0.85 ? 'ok' : 'warn', spark: m.received })}
-    ${kpi({ label: t('k_debt'), value: `<span data-k="debt">${short(m.debt)}</span> <small>${t('sum')}</small>`, sub: t('ytd'), ic: 'alert', tone: 'bad', spark: m.charged.map((c, i) => c - m.received[i]) })}
-    ${kpi({ label: t('k_timely'), value: pct(m.timely), sub: `${t('k_overdue')}: ${num(m.overdue.length)} · ${short(m.overdueSum)}`, ic: 'transfers', tone: m.timely > 0.8 ? 'ok' : 'warn' })}
+    ${kpi({ label: t('k_members'), value: `<span data-k="active">${num(m.active)}</span>`, sub: `${t('total')}: ${num(m.total)}`, ic: 'members', tone: 'hl', spark: [3, 4, 4, 5, 5, 6, 6, 7, 7, 8], drill: 'members?status=active' })}
+    ${kpi({ label: t('k_collect'), value: `<span data-k="collect" data-v="${m.collect}">${pct(m.collect)}</span>`, sub: `${short(m.rc)} / ${short(m.ch)}`, ic: 'fees', tone: m.collect > 0.85 ? 'ok' : 'warn', spark: m.received, drill: 'fees' })}
+    ${kpi({ label: t('k_debt'), value: `<span data-k="debt" data-v="${m.debt}">${short(m.debt)}</span> <small>${t('sum')}</small>`, sub: t('ytd'), ic: 'alert', tone: 'bad', spark: m.charged.map((c, i) => c - m.received[i]), drill: 'members?debt=1' })}
+    ${kpi({ label: t('k_timely'), value: pct(m.timely), sub: `${t('k_overdue')}: ${num(m.overdue.length)} · ${short(m.overdueSum)}`, ic: 'transfers', tone: m.timely > 0.8 ? 'ok' : 'warn', drill: 'transfers?st=problem' })}
   </div>`;
 
-  const chart = card(t('receiptsByMonth'), `<p class="muted small" style="margin:-8px 0 6px">${t('plan')} / ${t('fact')} · <span data-k="rcMonth">${short(last)}</span> ${t('sum')} — ${mon(MONTHS - 1)}</p>
-      ${areaChart('rcpt', m.charged.slice(from), m.received.slice(from), labels, { unit: t('sum'), planLabel: t('plan') })}`,
+  const chart = card(t('receiptsByMonth'), `<p class="muted small" style="margin:-8px 0 6px">${t('plan')} / ${t('fact')} · <span class="num drill"${drillAttr(`bank?st=matched&m=${MONTHS - 1}`, `${t('received')} · ${mon(MONTHS - 1)}`)}><span data-k="rcMonth" data-v="${last}">${short(last)}</span> ${t('sum')} — ${mon(MONTHS - 1)}</span></p>
+      ${areaChart('rcpt', m.charged.slice(from), m.received.slice(from), labels, { unit: t('sum'), planLabel: t('plan'), drill: (i) => [`bank?st=matched&m=${from + i}`, `${t('received')} · ${mon(from + i)} 2026`] })}`,
   { actions: segmented('dashRange', [['q', '3 oy'], ['h', '6 oy'], ['year', String(YEAR)]], f.range) });
 
   const side = card(t('distShare'), `<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-      <div id="dDonut">${donut(split.map((r) => ({ v: r.sum, color: COLORS[r.to], tip: `${t('to_' + r.to)}: ${num(r.sum)}` })), { value: short(last), label: mon(MONTHS - 1) })}</div>
+      <div id="dDonut" class="drill"${drillAttr('distribution', t('distShare'))}>${donut(split.map((r) => ({ v: r.sum, color: COLORS[r.to], tip: `${t('to_' + r.to)}: ${num(r.sum)}` })), { value: short(last), label: mon(MONTHS - 1) })}</div>
       <div style="flex:1;min-width:150px;display:grid;gap:10px">${split.map((r) => `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px"><span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${COLORS[r.to]};margin-right:8px"></i>${esc(t('to_' + r.to))}</span><b>${r.pct}%</b></div>`).join('')}</div>
-    </div><div style="display:flex;justify-content:center;margin-top:8px">${gauge(m.collect, t('k_collect'), 'dGauge')}</div>`);
+    </div><div class="drill" style="display:flex;justify-content:center;margin-top:8px"${drillAttr('fees', t('k_collect'))}>${gauge(m.collect, t('k_collect'), 'dGauge')}</div>`);
 
   const caps = card(scopeType() === 'republic' ? t('regionsCollect') : t('k_collect'), capsules(capItems(ranking())),
     { actions: `<span class="muted small">${t('k_collect')} · ${t('ytd')}</span>` });
@@ -46,19 +46,21 @@ export function render() {
     { actions: `<span class="live"><i></i>LIVE</span><button class="btn sm ghost" id="livePause">${paused ? t('resume') : t('pause')}</button>` });
 
   const od = m.overdue.slice().sort((a, b) => (b.amount - b.paid) - (a.amount - a.paid)).slice(0, 6);
-  const odCard = card(t('overdueList'), od.length ? `<div class="tbl-wrap"><table class="tbl"><tbody>${od.map((o) => `<tr><td>${esc(orgName(o.from))}<br><small>→ ${esc(orgName(o.to))} · ${mon(o.month)} · ${o.pct}%</small></td>
+  const odCard = card(t('overdueList'), od.length ? `<div class="tbl-wrap"><table class="tbl"><tbody>${od.map((o) => `<tr class="drill"${drillAttr(`transfers?st=all&q=${o.id}`, o.id)}><td>${esc(orgName(o.from))}<br><small>→ ${esc(orgName(o.to))} · ${mon(o.month)} · ${o.pct}%</small></td>
       <td>${pill(o.status)}</td><td class="r"><b>${short(o.amount - o.paid)}</b><br><small>${o.overdueDays} ${t('days')}</small></td></tr>`).join('')}</tbody></table></div>` : `<p class="muted">${t('noData')}</p>`,
   { actions: `<a class="btn sm" href="#/transfers">${t('details')} ${icon('chevron', 14)}</a>` });
 
   const dl = [[`${t('registers')} (${t('society')})`, new Date(YEAR, MONTHS, 5)], [`${t('registers')} (${t('region')})`, new Date(YEAR, MONTHS, 7)],
     [`20/10 → ${t('to_region')}`, nthWorkday(MONTHS - 1, 5)], [`36% → ${t('to_center')}`, nthWorkday(MONTHS - 1, 3)], [t('rep_monthly'), new Date(YEAR, MONTHS, 10)]].sort((a, b) => a[1] - b[1]);
-  const dlCard = card(t('deadlines'), `<div style="display:grid;gap:10px">${dl.map(([l, d]) => `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.8px">
+  const dlTo = (l) => (l.includes('→') ? 'transfers?st=open' : 'reports');
+  const dlCard = card(t('deadlines'), `<div style="display:grid;gap:10px">${dl.map(([l, d]) => `<div class="drill"${drillAttr(dlTo(l), l)} style="display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.8px">
       <span style="display:flex;gap:10px;align-items:center">${icon('calendar', 15)}${esc(l)}</span><b>${date(d)}</b></div>`).join('')}</div>`);
 
   const confirmed = obs.filter((o) => o.bankDate).length, ordered = obs.filter((o) => o.orderDate).length;
-  const steps = [[t('p1'), num(m.total)], [t('p2'), short(m.ch)], [t('p3'), `<span data-k="rc">${short(m.rc)}</span>`], [t('p4'), num(obs.length)],
+  const steps = [[t('p1'), num(m.total)], [t('p2'), short(m.ch)], [t('p3'), `<span data-k="rc" data-v="${m.rc}">${short(m.rc)}</span>`], [t('p4'), num(obs.length)],
     [t('p5'), num(ordered)], [t('p6'), num(confirmed)], [t('p7'), num(regs.filter((r) => r.submitted).length)], [t('p8'), num(AUDIT.length)]];
-  const pipeline = card(t('pipeline'), `<div class="pipeline">${steps.map(([a, b]) => `<div>${esc(a)}<b>${b}</b></div>`).join('')}</div>`);
+  const DR = ['members', 'fees', 'bank?st=matched', 'transfers?st=all', 'transfers?st=open', 'transfers?st=done', 'reports', 'audit'];
+  const pipeline = card(t('pipeline'), `<div class="pipeline">${steps.map(([a, b], i) => `<div class="drill"${drillAttr(DR[i], a)}>${esc(a)}<b>${b}</b></div>`).join('')}</div>`);
 
   return `<div class="page-h"><div><h1>${t('dashboard')}</h1><p>${esc(S.role.user)} · ${esc(t(S.role.key))} · ${date(TODAY)}</p></div>
       <div class="card-a"><a class="btn" href="#/reports">${icon('download', 15)} ${t('export')}</a><a class="btn primary" href="#/bank">${icon('upload', 15)} ${t('uploadStatement')}</a></div></div>
@@ -72,12 +74,12 @@ export function render() {
 /* ---------- real-time demo stream: a bank receipt every ~3 s updates everything in place ---------- */
 function tick(root) {
   if (!root.isConnected || S.page !== 'dashboard') { clearTimeout(timer); timer = 0; return; }
-  if (!paused) {
+  if (!paused && !document.hidden) { // no work while the tab is in the background
     const socs = societies(); const s = socs[Math.floor(Math.random() * socs.length)];
     const amount = (1 + Math.floor(Math.random() * 24)) * 12000;
     AGG[s.id].received[MONTHS - 1] += amount;
     const id = `TXN${String(61000000 + Math.floor(Math.random() * 899999))}`;
-    BANK.unshift({ id, date: new Date(), amount, payer: `${s.name} tayanch guruhi`, account: s.account, society: s.id, region: s.region, purpose: 'Aʼzolik badali (onlayn)', status: 'matched' });
+    BANK.unshift({ id, date: new Date(), amount, payer: `${s.name} tayanch guruhi`, account: s.account, society: s.id, region: s.region, purpose: 'Aʼzolik badali (onlayn)', status: 'matched', month: MONTHS - 1 });
     const now = new Date();
     feed.unshift({ id, soc: `${s.name} · ${regionName(s.region)}`, amount, time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}` });
     feed.length = Math.min(feed.length, 12);
@@ -102,8 +104,8 @@ function tick(root) {
 
 export function mount(el, rerender) {
   wire(el, 'dashboard', rerender, ({ name, value }) => { if (name === 'dashRange') { F('dashboard').range = value; rerender(); } });
-  requestAnimationFrame(() => mountCharts(el));
+  mountCharts(el);
   el.querySelector('#livePause').addEventListener('click', (e) => { paused = !paused; e.currentTarget.textContent = paused ? t('resume') : t('pause'); });
-  el.addEventListener('click', (e) => { const c = e.target.closest('[data-cap]'); if (c && scopeType() === 'republic' && byId[c.dataset.cap]) { F('members').region = c.dataset.cap; location.hash = '#/members'; } });
+  el.addEventListener('click', (e) => { const c = e.target.closest('[data-cap]'); if (c && byId[c.dataset.cap]) { S.filters.fees = scopeType() === 'republic' ? { region: c.dataset.cap, _via: regionName(c.dataset.cap) } : { soc: c.dataset.cap, _via: byId[c.dataset.cap].name }; location.hash = '#/fees'; } });
   clearTimeout(timer); timer = setTimeout(() => tick(el), 1500);
 }

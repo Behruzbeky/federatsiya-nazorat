@@ -2,15 +2,16 @@ import { t, mon } from '../i18n.js';
 import { table, pill, esc, num, short, kpi, date, icon, segmented, toast, downloadCSV, card, pct } from '../ui.js';
 import { obligations, S, can, log, orgName, resetCache } from '../store.js';
 import { MONTHS, TODAY } from '../data.js';
-import { F, wire, opt } from './_common.js';
+import { F, wire, opt, drillBar } from './_common.js';
 
 const BAD = ['overdue', 'partial', 'unconfirmed'];
 let rows = [];
 export function render() {
-  const f = F('transfers', { st: 'problem', m: '', kind: '' });
+  const f = F('transfers', { st: 'problem', m: '', kind: '', q: '' });
+  const q = (f.q || '').trim().toLowerCase();
   const all = obligations();
   rows = all.filter((o) => (f.st === 'all' || (f.st === 'problem' ? BAD.includes(o.status) : f.st === 'open' ? ['pending', 'ordered'].includes(o.status) : o.status === f.st))
-    && (f.m === '' || o.month === +f.m) && (!f.kind || o.kind === f.kind))
+    && (f.m === '' || o.month === +f.m) && (!f.kind || o.kind === f.kind) && (!q || o.id.toLowerCase().includes(q) || orgName(o.from).toLowerCase().includes(q)))
     .sort((a, b) => b.overdueDays - a.overdueDays || b.month - a.month);
   const due = all.filter((o) => o.dueDate < TODAY);
   const ok = due.filter((o) => o.status === 'done').length;
@@ -32,14 +33,14 @@ export function render() {
   return `<div class="page-h"><div><h1>${t('transfers')}</h1><p>${t('obligation')} → ${t('orderNo')} → ${t('bankConf')} → ${t('left')}</p></div>
     <div class="card-a"><button class="btn" id="tExport">${icon('download', 15)} CSV</button></div></div>
     <div class="grid g4" style="margin-bottom:14px">
-      ${kpi({ label: t('k_timely'), value: pct(ok / (due.length || 1)), sub: `${num(ok)} / ${num(due.length)}`, ic: 'transfers', tone: 'ok' })}
-      ${kpi({ label: t('k_overdue'), value: num(bad.length), sub: `${short(bad.reduce((s, o) => s + o.amount - o.paid, 0))} ${t('sum')}`, ic: 'clock', tone: 'bad' })}
-      ${kpi({ label: t('unconfirmed'), value: num(all.filter((o) => o.status === 'unconfirmed').length), sub: t('bankOnly'), ic: 'bank', tone: 'warn' })}
-      ${kpi({ label: `${t('pending')} · ${mon(MONTHS - 1)}`, value: num(all.filter((o) => ['pending', 'ordered'].includes(o.status)).length), sub: `${t('due')}: ${date(all.find((o) => o.month === MONTHS - 1)?.dueDate)}`, ic: 'calendar' })}
+      ${kpi({ label: t('k_timely'), value: pct(ok / (due.length || 1)), sub: `${num(ok)} / ${num(due.length)}`, ic: 'transfers', tone: 'ok', drill: 'transfers?st=done' })}
+      ${kpi({ label: t('k_overdue'), value: num(bad.length), sub: `${short(bad.reduce((s, o) => s + o.amount - o.paid, 0))} ${t('sum')}`, ic: 'clock', tone: 'bad', drill: 'transfers?st=problem' })}
+      ${kpi({ label: t('unconfirmed'), value: num(all.filter((o) => o.status === 'unconfirmed').length), sub: t('bankOnly'), ic: 'bank', tone: 'warn', drill: 'transfers?st=unconfirmed' })}
+      ${kpi({ label: `${t('pending')} · ${mon(MONTHS - 1)}`, value: num(all.filter((o) => ['pending', 'ordered'].includes(o.status)).length), sub: `${t('due')}: ${date(all.find((o) => o.month === MONTHS - 1)?.dueDate)}`, ic: 'calendar', drill: 'transfers?st=open' })}
     </div>
     ${card(t('escalation'), esc4, { cls: '' })}
-    <section class="card" style="margin-top:14px"><div class="toolbar">
-      ${segmented('trSt', [['problem', `⚠ ${t('k_overdue')}`], ['open', t('pending')], ['done', t('done')], ['doneLate', t('doneLate')], ['all', t('all')]], f.st)}
+    <section class="card" style="margin-top:14px">${drillBar('transfers')}<div class="toolbar">
+      <input class="inp" data-f="q" value="${esc(f.q || '')}" placeholder="OB-…, ${esc(t('society').toLowerCase())}" style="width:180px">${segmented('trSt', [['problem', `⚠ ${t('k_overdue')}`], ['open', t('pending')], ['done', t('done')], ['doneLate', t('doneLate')], ['all', t('all')]], f.st)}
       <select class="inp" data-f="m">${opt('', `${t('period')}: ${t('all')}`, f.m)}${Array.from({ length: MONTHS }, (_, i) => opt(i, mon(i), f.m)).join('')}</select>
       <select class="inp" data-f="kind">${opt('', `${t('source')}: ${t('all')}`, f.kind)}${opt('society', '20/10 · ' + t('society'), f.kind)}${opt('region', '36% · ' + t('region'), f.kind)}</select>
     </div>${table(rows, cols, { page: S.pages.transfers || 0, id: 'transfers', size: 20 })}</section>`;
