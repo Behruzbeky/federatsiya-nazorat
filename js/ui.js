@@ -92,7 +92,7 @@ export function donut(parts, { size = 168, label = '', value = '' } = {}) {
   let off = 0;
   const arcs = parts.map((p, i) => { const len = (p.v / total) * c; const s = `<circle class="seg" style="animation-delay:${i * 0.12}s" r="${r}" cx="80" cy="80" fill="none" stroke="${p.color}" stroke-width="16" stroke-dasharray="${Math.max(0, len - 3)} ${c}" stroke-dashoffset="${-off}" stroke-linecap="round" data-tip="${esc(p.tip || '')}"/>`; off += len; return s; }).join('');
   return `<svg class="donut" width="${size}" height="${size}" viewBox="0 0 160 160"><g transform="rotate(-90 80 80)"><circle r="${r}" cx="80" cy="80" fill="none" stroke="var(--line)" stroke-width="16"/>${arcs}</g>
-    <text x="80" y="76" text-anchor="middle" class="d-val">${value}</text><text x="80" y="96" text-anchor="middle" class="d-lbl">${esc(label)}</text></svg>`;
+    <text x="80" y="78" text-anchor="middle" class="d-val">${value}</text><text x="80" y="99" text-anchor="middle" class="d-lbl">${esc(label)}</text></svg>`;
 }
 
 /** Half-circle gauge whose arc sweeps to the value (arc length of r=80 half circle ≈ 251.3). */

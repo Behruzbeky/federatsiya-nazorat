@@ -58,7 +58,7 @@ body.in-app .emblem { opacity: calc(var(--emblem-app) * 2.2); }
 /* entrance: cards rise out of blur, staggered (--i set in JS) */
 @keyframes glassIn { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
 .page .card { animation: glassIn .5s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 35ms); }
-.page.settled .card, .page.settled .cap i, .page.settled .donut .seg, .page.settled .gauge .arc { animation: none; }
+.page.in .card, .page.settled .card, .page.settled .cap i, .page.settled .donut .seg, .page.settled .gauge .arc { animation: none; }
 .page.settled .gauge .arc { stroke-dashoffset: var(--off); }
 .tbl-wrap { background: transparent; }
 .tbl th { background: var(--thead); }
@@ -134,7 +134,7 @@ body.in-app .emblem { opacity: calc(var(--emblem-app) * 2.2); }
 body.in-app .emblem { filter: blur(2px); }
 /* cards: own paint layer bounds, skip work for off-screen content */
 .card { contain: layout paint; }
-.page > .grid > .card, .page > section.card { content-visibility: auto; contain-intrinsic-size: auto 320px; }
+/* no content-visibility on cards: combined with the entrance transform it left half-painted, faded cards */
 .chart .fact { filter: none; }
 .chart .fact-glow { stroke: var(--cyan); stroke-width: 8; opacity: .18; fill: none; }
 /* drill-down: every number that has a source is a link */

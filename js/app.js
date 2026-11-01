@@ -115,6 +115,8 @@ async function route() {
   if (mod.mount) mod.mount(view.firstElementChild, rerender);
   syncSegments();
   window.scrollTo({ top: 0 });
+  // entrance is over after ~1 s; drop it so a throttled or stalled animation can never leave cards faded
+  const page = view.firstElementChild; setTimeout(() => page.classList.add('in'), 1100);
 }
 async function rerender() {
   const mod = await load(S.page);

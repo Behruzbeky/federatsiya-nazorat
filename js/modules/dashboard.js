@@ -1,4 +1,4 @@
-import { t, mon } from '../i18n.js';
+import { t, mon, monFull } from '../i18n.js';
 import { kpi, card, donut, gauge, setGauge, short, num, pct, esc, pill, date, icon, segmented, drillAttr, delta, setDelta } from '../ui.js';
 import { areaChart, mountCharts, updateChart, capsules, updateCapsule, countUp } from '../charts.js';
 import { metrics, ranking, obligations, registers, societies, S, orgName, scopeType, resetCache, regionName } from '../store.js';
@@ -42,7 +42,7 @@ export function render() {
   { actions: segmented('dashRange', [['q', '3 oy'], ['h', '6 oy'], ['year', String(YEAR)]], f.range) });
 
   const side = card(t('distShare'), `<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-      <div id="dDonut" class="drill"${drillAttr('distribution', t('distShare'))}>${donut(split.map((r) => ({ v: r.sum, color: COLORS[r.to], tip: `${t('to_' + r.to)}: ${num(r.sum)}` })), { value: short(last), label: mon(MONTHS - 1) })}</div>
+      <div id="dDonut" class="drill"${drillAttr('distribution', t('distShare'))}>${donut(split.map((r) => ({ v: r.sum, color: COLORS[r.to], tip: `${t('to_' + r.to)}: ${num(r.sum)}` })), { value: short(last), label: `${monFull(MONTHS - 1)} ${YEAR}` })}</div>
       <div style="flex:1;min-width:150px;display:grid;gap:10px">${split.map((r) => `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px"><span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${COLORS[r.to]};margin-right:8px"></i>${esc(t('to_' + r.to))}</span><b>${r.pct}%</b></div>`).join('')}</div>
     </div><div class="drill" style="display:flex;justify-content:center;margin-top:8px"${drillAttr('fees', t('k_collect'))}>${gauge(m.collect, t('k_collect'), 'dGauge')}</div>`);
 
