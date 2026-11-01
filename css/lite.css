@@ -1,0 +1,21 @@
+/* Lite mode: lighter effects for phones and weak devices (class "lite" is set in js/theme.js).
+   Look stays the same (colours, cards, layout); only the heavy GPU effects are switched off. */
+html.lite .glass, html.lite .rail, html.lite .top, html.lite .drawer, html.lite .login-card {
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+html.lite[data-theme="light"] .rail, html.lite[data-theme="light"] .top, html.lite[data-theme="light"] .drawer, html.lite[data-theme="light"] .login-card { background: rgba(255,255,255,.88); }
+html.lite[data-theme="dark"] .rail, html.lite[data-theme="dark"] .top, html.lite[data-theme="dark"] .drawer, html.lite[data-theme="dark"] .login-card { background: rgba(14,24,54,.92); }
+/* background: no moving blobs, no glow filters, no spinning ring */
+html.lite .orb { animation: none !important; }
+html.lite .emblem, html.lite body.in-app .emblem { filter: none !important; }
+html.lite .emblem .ticks { animation: none !important; }
+html.lite .grain { display: none; }
+/* cards: no cursor glare, shorter and simpler entrance, lighter shadows */
+html.lite .card::after { display: none; }
+html.lite .page .card { animation-duration: .25s; animation-delay: 0s; }
+html.lite .card { box-shadow: inset 0 1px 0 var(--glass-edge), 0 6px 16px -12px rgba(15,35,90,.4); }
+html.lite .card.drill:hover { transform: none; }
+/* charts: no glow, no endless pulsing */
+html.lite .chart .hot { filter: none; }
+html.lite .chart .fact { filter: none; }
+html.lite .chart .live-ring, html.lite .live i { animation: none; }
+html.lite .view { animation: none; }
